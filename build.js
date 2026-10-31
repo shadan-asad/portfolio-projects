@@ -108,7 +108,7 @@ const rewrites = [
 
 const vercelConfig = {
   outputDirectory: '.',
-  cleanUrls: true,
+  cleanUrls: false,
   trailingSlash: false,
   rewrites
 };
@@ -306,6 +306,8 @@ const indexHtml = `<!DOCTYPE html>
             </button>
             <a 
               href="/${p.slug}" 
+              target="_blank" 
+              rel="noopener noreferrer"
               class="px-3.5 py-2 text-xs font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-500 transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
             >
               Launch Live
