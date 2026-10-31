@@ -107,6 +107,7 @@ const rewrites = [
 ];
 
 const vercelConfig = {
+  outputDirectory: '.',
   cleanUrls: true,
   trailingSlash: false,
   rewrites
