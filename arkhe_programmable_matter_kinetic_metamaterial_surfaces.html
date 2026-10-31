@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="editorial">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARKHE™ — Programmable Matter &amp; Kinetic Metamaterial Surfaces</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    :root[data-theme="editorial"] {
+      --bg-primary: #f4f0e8;
+      --bg-secondary: #ebe5d8;
+      --bg-card: rgba(255, 252, 245, 0.86);
+      --bg-stage: #141513;
+      --text-primary: #141513;
+      --text-secondary: #52514c;
+      --text-muted: #78756e;
+      --border-hairline: rgba(20, 21, 19, 0.13);
+      --border-strong: rgba(20, 21, 19, 0.28);
+      --accent-orange: #ff4f18;
+      --accent-teal: #0d9488;
+      --accent-amber: #d97706;
+      --pill-bg: rgba(20, 21, 19, 0.06);
+    }
+
+    :root[data-theme="carbon"] {
+      --bg-primary: #111210;
+      --bg-secondary: #181a17;
+      --bg-card: rgba(26, 29, 25, 0.88);
+      --bg-stage: #0a0b09;
+      --text-primary: #f4f0e8;
+      --text-secondary: #b5b0a4;
+      --text-muted: #7e7a70;
+      --border-hairline: rgba(244, 240, 232, 0.12);
+      --border-strong: rgba(244, 240, 232, 0.28);
+      --accent-orange: #ff5722;
+      --accent-teal: #14b8a6;
+      --accent-amber: #f59e0b;
+      --pill-bg: rgba(244, 240, 232, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
+
+    .font-serif-editorial {
+      font-family: 'Instrument Serif', Georgia, serif;
+    }
+
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Swiss Architectural Drafting Grid */
+    .swiss-grid-bg {
+      background-size: 64px 64px;
+      background-image:
+        linear-gradient(to right, var(--border-hairline) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--border-hairline) 1px, transparent 1px);
+    }
+
+    .tactile-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-hairline);
+      box-shadow: 0 12px 32px -12px rgba(20, 21, 19, 0.12);
+      transition: border-color 0.25s ease, transform 0.25s ease, background-color 0.35s ease;
+    }
+
+    .tactile-card:hover {
+      border-color: var(--border-strong);
+    }
+
+    /* Hardware Tactile Keycap Button */
+    .hw-btn {
+      background: var(--pill-bg);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .hw-btn:hover {
+      border-color: var(--accent-orange);
+      transform: translateY(-1px);
+    }
+
+    .hw-btn-active {
+      background: var(--accent-orange) !important;
+      color: #ffffff !important;
+      border-color: var(--accent-orange) !important;
+      box-shadow: 0 6px 18px rgba(255, 79, 24, 0.35);
+    }
+
+    /* Custom Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--border-strong);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: var(--accent-orange);
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 8px rgba(255, 79, 24, 0.5);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* Marquee Ticker */
+    @keyframes tickerSlide {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      animation: tickerSlide 28s linear infinite;
+    }
+
+    .ticker-track:hover {
+      animation-play-state: paused;
+    }
+
+    #kineticStageMount canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      outline: none;
+    }
+  </style>
+</head>
+<body class="relative selection:bg-[#ff4f18] selection:text-white">
+
+  <!-- Background Swiss Drafting Grid -->
+  <div class="fixed inset-0 swiss-grid-bg pointer-events-none z-0 opacity-65"></div>
+
+  <!-- Top Telemetry & Field Note Bar -->
+  <div class="relative z-30 border-b border-[var(--border-hairline)] bg-[var(--bg-secondary)] px-4 sm:px-8 py-2 text-xs font-mono-tech flex flex-wrap items-center justify-between gap-2">
+    <div class="flex items-center gap-3">
+      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#ff4f18] text-white font-bold text-[10px] uppercase tracking-wider">
+        FIELD SPEC 04.2
+      </span>
+      <span class="text-[var(--text-secondary)]">
+        <strong>ARKHE™ KINETIC MATTER</strong> — 256-Actuator Piezo-Origami Tile Array Now Shipping
+      </span>
+    </div>
+    <div class="hidden md:flex items-center gap-5 text-[11px] text-[var(--text-muted)]">
+      <span>CURSOR FIELD: <strong id="topCoordReadout" class="text-[var(--text-primary)]">X: 000 // Y: 000</strong></span>
+      <span>SOLAR GAIN: <strong class="text-teal-600 dark:text-teal-400">+42.8%</strong></span>
+      <a href="#raytracer" class="underline hover:text-[#ff4f18] font-semibold">Launch Louver Ray-Tracer &darr;</a>
+    </div>
+  </div>
+
+  <!-- Sticky Architectural Navigation Bar -->
+  <header class="sticky top-3 z-40 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto w-full mt-3">
+    <nav class="tactile-card rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between">
+      <!-- Brand Identity -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-[#ff4f18] flex items-center justify-center text-white font-mono-tech font-bold text-sm shadow-md shadow-[#ff4f18]/30 group-hover:rotate-12 transition-transform">
+          ⊞
+        </div>
+        <div>
+          <span class="font-bold text-lg tracking-tight block leading-none">ARKHE<span class="font-light opacity-60">LABS</span></span>
+          <span class="font-mono-tech text-[9px] uppercase tracking-widest text-[var(--text-muted)] block mt-0.5">Zurich &middot; MIT Tangible</span>
+        </div>
+      </a>
+
+      <!-- Section Index Links -->
+      <div class="hidden lg:flex items-center gap-7 text-xs font-mono-tech uppercase tracking-wider text-[var(--text-secondary)]">
+        <a href="#hero-matrix" class="hover:text-[#ff4f18] transition-colors">01 / Kinetic Matrix</a>
+        <a href="#raytracer" class="hover:text-[#ff4f18] transition-colors">02 / Solar Ray-Tracer</a>
+        <a href="#bento-specs" class="hover:text-[#ff4f18] transition-colors">03 / Hardware SDK</a>
+        <a href="#roi-calc" class="hover:text-[#ff4f18] transition-colors">04 / Facade Calculator</a>
+        <a href="#devkits" class="hover:text-[#ff4f18] transition-colors">05 / DevKits</a>
+      </div>
+
+      <!-- Right Controls: Theme Toggle, Synth Audio, Command Palette, Order CTA -->
+      <div class="flex items-center gap-2">
+        <button id="themeToggleBtn" class="hw-btn px-3 py-1.5 rounded-xl text-xs font-mono-tech font-semibold flex items-center gap-1.5" title="Switch Warm Paper / Carbon Studio Theme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel" class="hidden sm:inline">Carbon Mode</span>
+        </button>
+        <button id="soundToggleBtn" class="hw-btn p-2 rounded-xl text-xs font-mono-tech" title="Toggle Tactile Piezo Synth Audio">
+          <span id="soundIcon">🔊</span>
+        </button>
+        <button id="openCmdBtn" class="hw-btn px-2.5 py-1.5 rounded-xl text-xs font-mono-tech hidden sm:flex items-center gap-1.5" title="Open Hardware Command Deck (⌘K)">
+          <span>⌘K</span>
+        </button>
+        <a href="#devkits" class="px-4 py-2 rounded-xl bg-[#ff4f18] hover:bg-[#e03e0b] text-white font-bold text-xs tracking-wide transition-all shadow-md shadow-[#ff4f18]/25">
+          Order Tile Kit
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 pt-8 lg:pt-12 pb-24 space-y-24">
+
+    <!-- =================================================================== -->
+    <!-- 01 // HERO SECTION & 256-PISTON 3D KINETIC METAMATERIAL MATRIX       -->
+    <!-- =================================================================== -->
+    <section id="hero-matrix" class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+      <!-- Left 6 Columns: Editorial Story & Controls -->
+      <div class="lg:col-span-6 space-y-6 text-left">
+        <div class="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--pill-bg)] text-xs font-mono-tech">
+          <span class="w-2 h-2 rounded-full bg-[#ff4f18] animate-ping"></span>
+          <span class="uppercase tracking-wider font-semibold">Programmable Physical Surfaces</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl xl:text-[3.65rem] font-bold tracking-tight leading-[1.04]">
+          Matter that <span class="font-serif-editorial italic font-normal text-[#ff4f18]">morphs</span> at the speed of software.
+        </h1>
+
+        <p class="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed max-w-xl">
+          Arkhe manufactures modular <strong>piezo-origami metamaterial tiles</strong>. Each solid-state surface contains 256 micro-actuated photovoltaic pistons that physically rise, tilt, and ripple in real time to track sunlight, focus acoustics, and regulate building airflow.
+        </p>
+
+        <!-- Interactive Waveform Preset Selector right in the Hero -->
+        <div class="p-4 rounded-2xl tactile-card space-y-3">
+          <div class="flex items-center justify-between text-xs font-mono-tech">
+            <span class="uppercase tracking-wider font-bold text-[var(--text-secondary)]">🎛️ Live 3D Actuator Pattern:</span>
+            <span id="activePatternBadge" class="text-[#ff4f18] font-bold">01 // HARMONIC RIPPLE</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button data-wave="ripple" class="wave-mode-btn hw-btn hw-btn-active py-2 px-3 rounded-xl text-xs font-mono-tech font-semibold text-center">
+              🌊 Ripple Wave
+            </button>
+            <button data-wave="solar" class="wave-mode-btn hw-btn py-2 px-3 rounded-xl text-xs font-mono-tech font-semibold text-center">
+              ☀️ Solar Track
+            </button>
+            <button data-wave="acoustic" class="wave-mode-btn hw-btn py-2 px-3 rounded-xl text-xs font-mono-tech font-semibold text-center">
+              🔊 Acoustic Lens
+            </button>
+            <button data-wave="terrain" class="wave-mode-btn hw-btn py-2 px-3 rounded-xl text-xs font-mono-tech font-semibold text-center">
+              🧬 Bio-Terrain
+            </button>
+          </div>
+        </div>
+
+        <!-- Primary CTAs + CLI Bar -->
+        <div class="flex flex-wrap items-center gap-3 pt-1">
+          <button id="dropImpulseBtn" class="px-5 py-3.5 rounded-xl bg-[#ff4f18] hover:bg-[#e03e0b] text-white font-bold text-sm shadow-lg shadow-[#ff4f18]/30 transition-all flex items-center gap-2 cursor-pointer">
+            <span>💧 Drop Kinetic Wave Impulse</span>
+          </button>
+          <button id="explodeViewBtn" class="hw-btn px-5 py-3.5 rounded-xl font-mono-tech font-semibold text-xs flex items-center gap-2">
+            <span>🔩 Exploded CAD View: OFF</span>
+          </button>
+        </div>
+
+        <!-- Hardware Spec Readout Strip -->
+        <div class="grid grid-cols-3 gap-4 pt-4 border-t border-[var(--border-hairline)] font-mono-tech">
+          <div>
+            <div class="text-2xl sm:text-3xl font-bold text-[#ff4f18]">256</div>
+            <div class="text-[11px] text-[var(--text-muted)] uppercase">Piezo Pistons / Tile</div>
+          </div>
+          <div>
+            <div class="text-2xl sm:text-3xl font-bold">0.4 ms</div>
+            <div class="text-[11px] text-[var(--text-muted)] uppercase">Actuation Latency</div>
+          </div>
+          <div>
+            <div class="text-2xl sm:text-3xl font-bold text-teal-600 dark:text-teal-400">245 W</div>
+            <div class="text-[11px] text-[var(--text-muted)] uppercase">Peak Heliotropic Yield</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right 6 Columns: 3D Interactive 16x16 Kinetic Pin-Sculpture Stage -->
+      <div class="lg:col-span-6 w-full">
+        <div class="rounded-3xl bg-[#121311] border-2 border-[var(--border-strong)] shadow-2xl relative overflow-hidden w-full h-[460px] sm:h-[510px] lg:h-[550px] flex flex-col justify-between p-4">
+          <!-- Top Stage Telemetry Overlay -->
+          <div class="relative z-20 flex flex-wrap items-center justify-between gap-2 text-xs font-mono-tech pointer-events-none">
+            <div class="px-3 py-1.5 rounded-xl bg-black/75 border border-white/15 text-stone-200 flex items-center gap-2 pointer-events-auto backdrop-blur-md">
+              <span class="w-2 h-2 rounded-full bg-[#ff4f18] animate-pulse"></span>
+              <span>MATRIX: <strong class="text-[#ff4f18]">16×16 HEX-PISTONS</strong></span>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-black/75 border border-white/15 text-stone-300 pointer-events-auto backdrop-blur-md">
+              <span>PEAK STROKE: <strong id="strokeTelemetry" class="text-amber-400">38.4 mm</strong></span>
+            </div>
+          </div>
+
+          <!-- Three.js 3D Kinetic Pin-Matrix Mount -->
+          <div id="kineticStageMount" class="absolute inset-0 w-full h-full cursor-crosshair z-10" title="Move cursor to sculpt waves, click to trigger a kinetic ripple, or right-drag to orbit camera"></div>
+
+          <!-- Bottom Live Frequency & Amplitude Sliders on Stage -->
+          <div class="relative z-20 bg-black/80 border border-white/15 rounded-2xl p-3 backdrop-blur-md pointer-events-auto grid grid-cols-1 sm:grid-cols-3 gap-3 items-center text-xs font-mono-tech text-stone-200">
+            <div>
+              <div class="flex justify-between text-[10px] text-stone-400 mb-1">
+                <span>WAVE FREQUENCY</span>
+                <span id="freqLabel" class="text-[#ff4f18] font-bold">2.4 Hz</span>
+              </div>
+              <input id="waveFreqSlider" type="range" min="0.5" max="5.0" step="0.1" value="2.4" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[10px] text-stone-400 mb-1">
+                <span>STROKE AMPLITUDE</span>
+                <span id="ampLabel" class="text-amber-400 font-bold">100%</span>
+              </div>
+              <input id="waveAmpSlider" type="range" min="20" max="160" step="5" value="100" />
+            </div>
+            <div class="flex items-center justify-end gap-1.5">
+              <button id="camAngleTopBtn" class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] text-stone-200 cursor-pointer">
+                Top Ortho
+              </button>
+              <button id="camAngleIsoBtn" class="px-2.5 py-1.5 rounded-lg bg-[#ff4f18] text-white text-[11px] font-semibold cursor-pointer">
+                3D Iso View
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architectural Partners Ticker -->
+    <section class="border-y border-[var(--border-hairline)] py-6 overflow-hidden">
+      <div class="ticker-track flex items-center gap-12 font-mono-tech text-xs uppercase tracking-widest text-[var(--text-muted)]">
+        <span>✦ ETH ZÜRICH ROBOTICS PAVILION</span>
+        <span>◈ FOSTER + PARTNERS MATERIAL LAB</span>
+        <span>❖ MIT TANGIBLE MEDIA SPINOUT</span>
+        <span>▲ SNOHETTA NORDIC SOLAR CANOPY</span>
+        <span>⬡ CERN ACOUSTIC METAMATERIALS</span>
+        <span>✦ TOKYO SHIBUYA KINETIC FACADE</span>
+        <!-- Duplicate for seamless loop -->
+        <span>✦ ETH ZÜRICH ROBOTICS PAVILION</span>
+        <span>◈ FOSTER + PARTNERS MATERIAL LAB</span>
+        <span>❖ MIT TANGIBLE MEDIA SPINOUT</span>
+        <span>▲ SNOHETTA NORDIC SOLAR CANOPY</span>
+        <span>⬡ CERN ACOUSTIC METAMATERIALS</span>
+        <span>✦ TOKYO SHIBUYA KINETIC FACADE</span>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 02 // LIVE INTERACTIVE LOUVER RAY-TRACER & AIRFLOW WIND TUNNEL       -->
+    <!-- =================================================================== -->
+    <section id="raytracer" class="space-y-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--border-hairline)] pb-6">
+        <div class="space-y-2 max-w-2xl">
+          <div class="text-xs font-mono-tech uppercase tracking-widest text-[#ff4f18] font-bold">
+            02 // Interactive Optical &amp; Fluid Simulation
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-bold tracking-tight">
+            Heliotropic louver ray-tracing &amp; airflow tunnel.
+          </h2>
+        </div>
+        <p class="text-sm text-[var(--text-secondary)] max-w-md">
+          Drag the sun angle and louver aperture sliders below to watch Arkhe's micro-louvers bounce solar radiation onto perovskite collectors while channeling laminar cooling breeze indoors.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <!-- Left 8 Columns: Live 2D Physics Ray-Tracing & Airflow Canvas -->
+        <div class="lg:col-span-8 rounded-3xl bg-[#121412] border border-[var(--border-strong)] overflow-hidden relative flex flex-col justify-between min-h-[390px] shadow-xl">
+          <div class="p-4 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 text-xs font-mono-tech text-stone-300 z-10 bg-black/40">
+            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-400"></span> PHOTON RAY-TRACER + LAMINAR AIRFLOW</span>
+            <div class="flex items-center gap-4">
+              <span>HARVESTED: <strong id="rayHarvestWatt" class="text-amber-400">238 W/m²</strong></span>
+              <span>INDOOR COOLING: <strong id="rayCoolingDelta" class="text-teal-400">-6.4 °C</strong></span>
+            </div>
+          </div>
+          <canvas id="rayTracerCanvas" class="w-full h-[330px] block cursor-ew-resize"></canvas>
+        </div>
+
+        <!-- Right 4 Columns: Tactile Simulation Controls -->
+        <div class="lg:col-span-4 tactile-card rounded-3xl p-6 flex flex-col justify-between space-y-6">
+          <div class="space-y-5">
+            <h3 class="font-bold text-lg">Environmental Controls</h3>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-tech">
+                <label for="sunAngleSlider">SOLAR INCIDENCE ANGLE</label>
+                <span id="sunAngleVal" class="text-[#ff4f18] font-bold">+32° Zenith</span>
+              </div>
+              <input id="sunAngleSlider" type="range" min="-55" max="55" step="1" value="32" />
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-tech">
+                <label for="louverTiltSlider">METAMATERIAL LOUVER TILT</label>
+                <span id="louverTiltVal" class="text-teal-600 dark:text-teal-400 font-bold">Auto-Track</span>
+              </div>
+              <input id="louverTiltSlider" type="range" min="-45" max="45" step="1" value="18" />
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-tech">
+                <label for="windVelocitySlider">WIND TUNNEL STREAM SPEED</label>
+                <span id="windVelocityVal" class="font-bold">14.5 m/s</span>
+              </div>
+              <input id="windVelocitySlider" type="range" min="2" max="30" step="0.5" value="14.5" />
+            </div>
+
+            <div class="pt-2">
+              <label class="flex items-center justify-between p-3 rounded-xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] cursor-pointer text-xs font-mono-tech">
+                <span>AI Heliotropic Auto-Lock</span>
+                <input id="autoTrackSunToggle" type="checkbox" checked class="w-4 h-4 accent-[#ff4f18]" />
+              </label>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] font-mono-tech text-xs space-y-1.5">
+            <div class="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Optical Efficiency</div>
+            <div id="opticalEfficiencyBarText" class="text-xl font-bold text-[#ff4f18]">94.2% Photon Capture</div>
+            <div class="w-full h-2 rounded-full bg-black/20 overflow-hidden">
+              <div id="opticalEfficiencyBar" class="h-full bg-[#ff4f18] w-[94%] transition-all duration-300"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 03 // SWISS ENGINEERING BENTO GRID: HARDWARE SDK & STRESS TESTER     -->
+    <!-- =================================================================== -->
+    <section id="bento-specs" class="space-y-8">
+      <div class="space-y-2">
+        <div class="text-xs font-mono-tech uppercase tracking-widest text-[#ff4f18] font-bold">
+          03 // Hardware &amp; Software Co-Design
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight">
+          Address physical matter like a DOM canvas.
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Bento 1: Embedded Hardware SDK (7 Cols) -->
+        <div class="lg:col-span-7 tactile-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-mono-tech uppercase text-[#ff4f18] font-bold">MatterScript™ SDK</span>
+              <h3 class="text-xl font-bold mt-0.5"> Declarative 60Hz Surface Shaders</h3>
+            </div>
+            <div class="flex gap-1.5 font-mono-tech text-xs">
+              <button class="sdk-lang-btn hw-btn hw-btn-active px-3 py-1 rounded-lg" data-lang="ts">TypeScript</button>
+              <button class="sdk-lang-btn hw-btn px-3 py-1 rounded-lg" data-lang="rust">Rust Firmware</button>
+              <button class="sdk-lang-btn hw-btn px-3 py-1 rounded-lg" data-lang="py">Python</button>
+            </div>
+          </div>
+
+          <pre id="sdkCodeBlock" class="bg-[#121311] text-stone-200 p-5 rounded-2xl border border-white/10 font-mono-tech text-xs overflow-x-auto leading-relaxed"><span class="text-[#ff4f18]">import</span> { ArkheSurface, WaveShader } <span class="text-[#ff4f18]">from</span> <span class="text-amber-300">'@arkhe/matter-sdk'</span>;
+
+<span class="text-stone-500">// Connect to 16x16 Piezo-Origami Tile over WebUSB or PoE+</span>
+<span class="text-[#ff4f18]">const</span> tile = <span class="text-[#ff4f18]">await</span> ArkheSurface.<span class="text-teal-300">mount</span>(<span class="text-amber-300">'usb://arkhe-tile-01'</span>);
+
+tile.<span class="text-teal-300">runShader</span>((x, y, t) =&gt; ({
+  strokeMm: Math.<span class="text-teal-300">sin</span>(Math.<span class="text-teal-300">hypot</span>(x - <span class="text-amber-300">8</span>, y - <span class="text-amber-300">8</span>) - t * <span class="text-amber-300">3.0</span>) * <span class="text-amber-300">24.0</span>,
+  tiltDeg:  tile.solarSensor.<span class="text-teal-300">optimalZenith</span>(x, y),
+  damping:  <span class="text-amber-300">0.88</span>
+}));</pre>
+
+          <div class="flex items-center justify-between pt-1 text-xs font-mono-tech">
+            <span class="text-[var(--text-muted)]">Supports WebUSB, Modbus-TCP, Matter &amp; ROS2</span>
+            <button id="copySdkBtn" class="hw-btn px-3.5 py-1.5 rounded-xl font-semibold">
+              📋 Copy Shader Code
+            </button>
+          </div>
+        </div>
+
+        <!-- Bento 2: Live Piezo Endurance Stress Oscilloscope (5 Cols) -->
+        <div class="lg:col-span-5 tactile-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-5">
+          <div class="space-y-1">
+            <span class="text-xs font-mono-tech uppercase text-teal-600 dark:text-teal-400 font-bold">Solid-State Compliant Hinges</span>
+            <h3 class="text-xl font-bold">100M-Cycle Fatigue Tester</h3>
+            <p class="text-xs text-[var(--text-secondary)]">
+              Zero gears or bearings. Monolithic carbon-elastomer flexure hinges flex 100 million times without wear.
+            </p>
+          </div>
+
+          <div class="bg-[#121311] rounded-2xl p-4 border border-white/10 space-y-3">
+            <div class="flex justify-between text-[11px] font-mono-tech text-stone-300">
+              <span>PIEZO VOLTAGE: <strong id="oscVoltage" class="text-[#ff4f18]">48.0 V</strong></span>
+              <span>CYCLES: <strong id="oscCycles" class="text-teal-400">104,820,910</strong></span>
+            </div>
+            <canvas id="oscilloscopeCanvas" class="w-full h-28 block"></canvas>
+          </div>
+
+          <button id="overdriveTestBtn" class="hw-btn w-full py-2.5 rounded-xl font-mono-tech text-xs font-bold">
+            ⚡ Trigger 200Hz Overdrive Stress Burst
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 04 // ARCHITECTURAL FACADE ROI & CARBON CALCULATOR                   -->
+    <!-- =================================================================== -->
+    <section id="roi-calc" class="tactile-card rounded-3xl p-6 sm:p-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-6 space-y-5">
+          <div class="text-xs font-mono-tech uppercase tracking-widest text-[#ff4f18] font-bold">
+            04 // Building Skin Configurator
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">
+            Estimate your building's solar &amp; acoustic payback.
+          </h2>
+
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-mono-tech">
+              <label for="facadeAreaSlider">ACTIVE FACADE COVERAGE AREA</label>
+              <span id="facadeAreaVal" class="font-bold text-[#ff4f18]">1,200 m² (4,800 Tiles)</span>
+            </div>
+            <input id="facadeAreaSlider" type="range" min="100" max="5000" step="100" value="1200" />
+          </div>
+
+          <div class="space-y-2">
+            <div class="text-xs font-mono-tech uppercase text-[var(--text-secondary)]">Select Climate Deployment Zone</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button class="climate-btn hw-btn py-2 rounded-xl text-xs font-mono-tech font-semibold" data-mult="1.0">🌧️ Nordic / EU</button>
+              <button class="climate-btn hw-btn hw-btn-active py-2 rounded-xl text-xs font-mono-tech font-semibold" data-mult="1.35">☀️ Temperate</button>
+              <button class="climate-btn hw-btn py-2 rounded-xl text-xs font-mono-tech font-semibold" data-mult="1.75">🏜️ High-Solar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono-tech">
+          <div class="p-5 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+            <div class="text-[11px] text-[var(--text-muted)] uppercase">Annual Clean Energy</div>
+            <div id="calcMwhOutput" class="text-2xl sm:text-3xl font-bold text-[#ff4f18] mt-1">388 MWh/yr</div>
+            <div class="text-[11px] text-[var(--text-secondary)] mt-1">+42% vs fixed solar glass</div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+            <div class="text-[11px] text-[var(--text-muted)] uppercase">Street Noise Reduction</div>
+            <div id="calcDbOutput" class="text-2xl sm:text-3xl font-bold text-teal-600 dark:text-teal-400 mt-1">-18.4 dB</div>
+            <div class="text-[11px] text-[var(--text-secondary)] mt-1">Active phase-canceling skin</div>
+          </div>
+
+          <div class="sm:col-span-2 p-6 rounded-2xl bg-[#141513] text-stone-100 border border-white/15 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="text-[11px] text-stone-400 uppercase">Projected Annual HVAC + Grid Savings</div>
+              <div id="calcSavingsOutput" class="text-3xl sm:text-4xl font-bold text-amber-400 mt-1">$142,800 / yr</div>
+            </div>
+            <a href="#devkits" class="px-5 py-3 rounded-xl bg-[#ff4f18] hover:bg-[#e03e0b] text-white font-sans font-bold text-xs transition-all">
+              Download CAD BIM Spec &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 05 // HARDWARE DEVKITS & ARCHITECTURAL LICENSING                     -->
+    <!-- =================================================================== -->
+    <section id="devkits" class="space-y-8">
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <div class="text-xs font-mono-tech uppercase tracking-widest text-[#ff4f18] font-bold">
+          05 // Modular Hardware &amp; Volume Supply
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight">
+          Start with a single 16×16 desktop tile.
+        </h2>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Chain tiles magnetically via pogo-pins from a 50cm studio prototype up to a 10,000 m² skyscraper curtain wall.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        <!-- Tier 1 -->
+        <div class="tactile-card rounded-3xl p-7 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex justify-between items-center font-mono-tech text-xs">
+              <span class="px-2.5 py-0.5 rounded bg-[var(--pill-bg)] font-bold">MODEL A-01</span>
+              <span class="text-teal-600 dark:text-teal-400 font-bold">● In Stock</span>
+            </div>
+            <h3 class="text-xl font-bold">Tangible Desk DevKit</h3>
+            <div class="text-3xl font-bold font-mono-tech">$290 <span class="text-xs font-normal text-[var(--text-muted)]">/ single tile</span></div>
+            <ul class="text-xs space-y-2.5 text-[var(--text-secondary)]">
+              <li>✓ 1× Arkhe 50×50cm Tile (256 Piezo Pistons)</li>
+              <li>✓ USB-C PD &amp; WebUSB plug-and-play SDK</li>
+              <li>✓ Integrated optical &amp; proximity touch sensors</li>
+              <li>✓ Full Three.js &amp; Python simulator twin</li>
+            </ul>
+          </div>
+          <button class="reserve-kit-btn hw-btn w-full py-3 rounded-xl font-mono-tech text-xs font-bold" data-kit="Model A-01 Desk DevKit">
+            Reserve Desk DevKit
+          </button>
+        </div>
+
+        <!-- Tier 2 (Featured) -->
+        <div class="tactile-card rounded-3xl p-7 border-2 border-[#ff4f18] relative flex flex-col justify-between space-y-6 transform md:-translate-y-2">
+          <span class="absolute -top-3 right-6 px-3 py-0.5 rounded-full bg-[#ff4f18] text-white font-mono-tech text-[10px] font-bold uppercase tracking-wider">
+            Most Popular Studio Array
+          </span>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center font-mono-tech text-xs">
+              <span class="px-2.5 py-0.5 rounded bg-[#ff4f18]/15 text-[#ff4f18] font-bold">ARRAY 4×4</span>
+              <span class="text-[#ff4f18] font-bold">4,096 Pistons</span>
+            </div>
+            <h3 class="text-xl font-bold">Pavilion Wall Matrix</h3>
+            <div class="text-3xl font-bold font-mono-tech">$3,800 <span class="text-xs font-normal text-[var(--text-muted)]">/ 16-tile wall</span></div>
+            <ul class="text-xs space-y-2.5 text-[var(--text-secondary)]">
+              <li>✓ 16× Magnetic-Lock Weatherproof Tiles (4 m²)</li>
+              <li>✓ 980W peak heliotropic solar micro-inverter</li>
+              <li>✓ Active acoustic beamforming &amp; noise cancellation</li>
+              <li>✓ Dedicated PoE++ Daisy-Chain Controller</li>
+            </ul>
+          </div>
+          <button class="reserve-kit-btn w-full py-3 rounded-xl bg-[#ff4f18] hover:bg-[#e03e0b] text-white font-mono-tech text-xs font-bold shadow-lg shadow-[#ff4f18]/25 transition-all cursor-pointer" data-kit="Pavilion 4x4 Wall Matrix">
+            Configure 4×4 Matrix &rarr;
+          </button>
+        </div>
+
+        <!-- Tier 3 -->
+        <div class="tactile-card rounded-3xl p-7 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex justify-between items-center font-mono-tech text-xs">
+              <span class="px-2.5 py-0.5 rounded bg-[var(--pill-bg)] font-bold">ARCHITECTURAL</span>
+              <span class="text-[var(--text-muted)]">ISO-14001</span>
+            </div>
+            <h3 class="text-xl font-bold">Curtain-Wall OEM</h3>
+            <div class="text-3xl font-bold font-mono-tech">Custom <span class="text-xs font-normal text-[var(--text-muted)]">/ per m²</span></div>
+            <ul class="text-xs space-y-2.5 text-[var(--text-secondary)]">
+              <li>✓ Custom anodizing, terracotta &amp; glass finishes</li>
+              <li>✓ BACnet / KNX smart-building BMS integration</li>
+              <li>✓ 25-year hurricane &amp; hail structural warranty</li>
+              <li>✓ On-site facade engineering in EU, US &amp; APAC</li>
+            </ul>
+          </div>
+          <button class="reserve-kit-btn hw-btn w-full py-3 rounded-xl font-mono-tech text-xs font-bold" data-kit="Architectural Curtain-Wall">
+            Request Engineering Spec
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[var(--border-hairline)] py-10 px-4 sm:px-6 lg:px-10 text-xs font-mono-tech text-[var(--text-muted)]">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5 text-[var(--text-primary)] font-bold">
+        <span class="w-5 h-5 rounded bg-[#ff4f18] text-white flex items-center justify-center text-[10px]">⊞</span>
+        <span>ARKHE METAMATERIALS AG &copy; 2026 &middot; ZÜRICH / CAMBRIDGE</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#hero-matrix" class="hover:text-[#ff4f18]">3D Matrix</a>
+        <a href="#raytracer" class="hover:text-[#ff4f18]">Wind Tunnel</a>
+        <a href="#bento-specs" class="hover:text-[#ff4f18]">SDK Docs</a>
+        <a href="#roi-calc" class="hover:text-[#ff4f18]">Calculator</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Command Palette Modal (⌘K) -->
+  <div id="cmdModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-start justify-center pt-24 px-4">
+    <div class="tactile-card w-full max-w-lg rounded-2xl p-2 shadow-2xl border border-[var(--border-strong)]">
+      <div class="flex items-center gap-3 px-3 py-2.5 border-b border-[var(--border-hairline)]">
+        <span class="text-[#ff4f18] font-mono-tech font-bold">&gt;_</span>
+        <input id="cmdInput" type="text" placeholder="Run hardware command or switch waveform..." class="w-full bg-transparent outline-none text-xs font-mono-tech" />
+        <kbd class="px-1.5 py-0.5 rounded bg-[var(--pill-bg)] text-[10px] font-mono-tech">ESC</kbd>
+      </div>
+      <div class="p-2 space-y-1 text-xs font-mono-tech">
+        <button data-cmd="impulse" class="cmd-row w-full text-left p-2.5 rounded-xl hover:bg-[#ff4f18] hover:text-white flex justify-between cursor-pointer">
+          <span>💧 Drop Kinetic Wave Impulse on 3D Matrix</span>
+          <span>RUN</span>
+        </button>
+        <button data-cmd="explode" class="cmd-row w-full text-left p-2.5 rounded-xl hover:bg-[#ff4f18] hover:text-white flex justify-between cursor-pointer">
+          <span>🔩 Toggle Exploded 3D CAD Assembly View</span>
+          <span>CAD</span>
+        </button>
+        <button data-cmd="theme" class="cmd-row w-full text-left p-2.5 rounded-xl hover:bg-[#ff4f18] hover:text-white flex justify-between cursor-pointer">
+          <span>🌓 Switch Paper Editorial / Carbon Darkroom Theme</span>
+          <span>UI</span>
+        </button>
+        <button data-cmd="ray" class="cmd-row w-full text-left p-2.5 rounded-xl hover:bg-[#ff4f18] hover:text-white flex justify-between cursor-pointer">
+          <span>☀️ Jump to Heliotropic Louver Ray-Tracer</span>
+          <span>GO</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastBanner" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-[#141513] text-white border border-[#ff4f18] font-mono-tech text-xs font-semibold shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    Action executed
+  </div>
+
+  <script>
+    window.onload = function () {
+      // =======================================================================
+      // 1. TACTILE PIEZO WEB AUDIO SYNTHESIZER (NO EXTERNAL FILES)
+      // =======================================================================
+      let audioCtx = null;
+      let soundOn = true;
+
+      function getAudio() {
+        if (!soundOn) return null;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+
+      function playPiezoClick(freq = 520, dur = 0.09, wave = 'triangle') {
+        const ctx = getAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = wave;
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.4, now + dur);
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + dur + 0.02);
+      }
+
+      document.getElementById('soundToggleBtn').addEventListener('click', () => {
+        soundOn = !soundOn;
+        document.getElementById('soundIcon').textContent = soundOn ? '🔊' : '🔇';
+      });
+
+      // Toast helper
+      const toastBanner = document.getElementById('toastBanner');
+      let toastTimeout = null;
+      function showToast(msg) {
+        toastBanner.textContent = msg;
+        toastBanner.classList.remove('translate-y-24', 'opacity-0');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          toastBanner.classList.add('translate-y-24', 'opacity-0');
+        }, 2400);
+      }
+
+      // Top bar cursor telemetry
+      window.addEventListener('mousemove', (e) => {
+        const xStr = String(e.clientX).padStart(3, '0');
+        const yStr = String(e.clientY).padStart(3, '0');
+        document.getElementById('topCoordReadout').textContent = `X: ${xStr} // Y: ${yStr}`;
+      });
+
+      // =======================================================================
+      // 2. THEME SWITCHER (WARM SWISS PAPER <-> CARBON DARKROOM)
+      // =======================================================================
+      const htmlEl = document.documentElement;
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      function toggleTheme() {
+        const cur = htmlEl.getAttribute('data-theme');
+        const next = cur === 'editorial' ? 'carbon' : 'editorial';
+        htmlEl.setAttribute('data-theme', next);
+        document.getElementById('themeIcon').textContent = next === 'editorial' ? '🌙' : '☀️';
+        document.getElementById('themeLabel').textContent = next === 'editorial' ? 'Carbon Mode' : 'Paper Mode';
+        playPiezoClick(next === 'editorial' ? 640 : 420, 0.1);
+      }
+      themeToggleBtn.addEventListener('click', toggleTheme);
+
+      // =======================================================================
+      // 3. THREE.JS 256-PISTON KINETIC METAMATERIAL MATRIX (HERO ANIMATION)
+      // =======================================================================
+      const stageMount = document.getElementById('kineticStageMount');
+      const scene = new THREE.Scene();
+
+      const getStageSize = () => ({
+        w: Math.max(300, stageMount.clientWidth || 540),
+        h: Math.max(300, stageMount.clientHeight || 500)
+      });
+
+      const initSz = getStageSize();
+      const camera = new THREE.PerspectiveCamera(38, initSz.w / initSz.h, 0.1, 200);
+      let camTargetPos = new THREE.Vector3(0, 14.5, 16.5);
+      camera.position.copy(camTargetPos);
+      camera.lookAt(0, 0, 0);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(initSz.w, initSz.h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      stageMount.appendChild(renderer.domElement);
+
+      // Warm Architectural Studio Lighting
+      const ambLight = new THREE.AmbientLight(0xf4f0e8, 0.75);
+      scene.add(ambLight);
+
+      const dirLight1 = new THREE.DirectionalLight(0xfff7ed, 1.35);
+      dirLight1.position.set(12, 22, 14);
+      scene.add(dirLight1);
+
+      const orangeLight = new THREE.PointLight(0xff4f18, 2.5, 28);
+      orangeLight.position.set(0, 6, 0);
+      scene.add(orangeLight);
+
+      const tealLight = new THREE.PointLight(0x14b8a6, 1.6, 26);
+      tealLight.position.set(-9, 8, -9);
+      scene.add(tealLight);
+
+      // Create 16 x 16 = 256 Kinetic Hexagonal/Prismatic Actuator Tiles
+      const GRID_N = 16;
+      const SPACING = 0.72;
+      const matrixGroup = new THREE.Group();
+      scene.add(matrixGroup);
+
+      // Base Substrate Chassis Plate
+      const basePlateGeo = new THREE.BoxGeometry(GRID_N * SPACING + 0.8, 0.35, GRID_N * SPACING + 0.8);
+      const basePlateMat = new THREE.MeshStandardMaterial({
+        color: 0x1c1d1a,
+        roughness: 0.7,
+        metalness: 0.4
+      });
+      const basePlateMesh = new THREE.Mesh(basePlateGeo, basePlateMat);
+      basePlateMesh.position.y = -1.2;
+      matrixGroup.add(basePlateMesh);
+
+      // Individual Actuator Pistons (Cap + Stem)
+      const capGeo = new THREE.CylinderGeometry(0.31, 0.31, 0.22, 6); // Hexagonal tile cap
+      const stemGeo = new THREE.CylinderGeometry(0.09, 0.09, 1.4, 8);
+
+      const stemMat = new THREE.MeshStandardMaterial({
+        color: 0x57534e,
+        metalness: 0.8,
+        roughness: 0.25
+      });
+
+      const pistons = [];
+      const halfSpan = ((GRID_N - 1) * SPACING) / 2;
+
+      for (let gx = 0; gx < GRID_N; gx++) {
+        for (let gz = 0; gz < GRID_N; gz++) {
+          const wx = gx * SPACING - halfSpan + (gz % 2 === 0 ? 0 : SPACING * 0.22);
+          const wz = gz * SPACING - halfSpan;
+
+          const cellGroup = new THREE.Group();
+          cellGroup.position.set(wx, 0, wz);
+
+          const capMat = new THREE.MeshStandardMaterial({
+            color: 0xe7e2d5,
+            roughness: 0.28,
+            metalness: 0.35
+          });
+
+          const capMesh = new THREE.Mesh(capGeo, capMat);
+          const stemMesh = new THREE.Mesh(stemGeo, stemMat);
+          stemMesh.position.y = -0.75;
+
+          cellGroup.add(capMesh);
+          cellGroup.add(stemMesh);
+          matrixGroup.add(cellGroup);
+
+          pistons.push({
+            gx,
+            gz,
+            wx,
+            wz,
+            group: cellGroup,
+            capMesh,
+            stemMesh,
+            capMat,
+            height: 0
+          });
+        }
+      }
+
+      // Raycasting on invisible plane to make pistons react to cursor position & click ripples
+      const raycaster = new THREE.Raycaster();
+      const mouseNDC = new THREE.Vector2(999, 999);
+      const hitPlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(30, 30),
+        new THREE.MeshBasicMaterial({ visible: false })
+      );
+      hitPlane.rotation.x = -Math.PI / 2;
+      matrixGroup.add(hitPlane);
+
+      let cursorWorld = new THREE.Vector3(0, 0, 0);
+      let isCursorInside = false;
+      const ripples = [
+        { x: 0, z: 0, age: 0, strength: 1.4 } // initial welcome ripple
+      ];
+
+      stageMount.addEventListener('mousemove', (e) => {
+        const rect = stageMount.getBoundingClientRect();
+        mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        isCursorInside = true;
+
+        raycaster.setFromCamera(mouseNDC, camera);
+        const hits = raycaster.intersectObject(hitPlane);
+        if (hits.length > 0) {
+          cursorWorld.copy(hits[0].point);
+          orangeLight.position.set(cursorWorld.x, 4.5, cursorWorld.z);
+        }
+      });
+
+      stageMount.addEventListener('mouseleave', () => {
+        isCursorInside = false;
+      });
+
+      function spawnWaveImpulse(x = 0, z = 0) {
+        ripples.push({ x, z, age: 0, strength: 1.85 });
+        if (ripples.length > 6) ripples.shift();
+        playPiezoClick(390 + Math.random() * 180, 0.16, 'sine');
+      }
+
+      stageMount.addEventListener('click', () => {
+        spawnWaveImpulse(cursorWorld.x, cursorWorld.z);
+      });
+
+      document.getElementById('dropImpulseBtn').addEventListener('click', () => {
+        spawnWaveImpulse((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4);
+        showToast('💧 Dropped kinetic wave impulse on 256-actuator matrix');
+      });
+
+      // Waveform Mode Switching
+      let activeWaveMode = 'ripple';
+      let waveFreq = 2.4;
+      let waveAmp = 1.0;
+      let isExplodedCAD = false;
+
+      const modeTitles = {
+        ripple: '01 // HARMONIC RIPPLE',
+        solar: '02 // HELIOTROPIC SOLAR TRACK',
+        acoustic: '03 // PARABOLIC ACOUSTIC LENS',
+        terrain: '04 // BIOMIMETIC TOPOGRAPHY'
+      };
+
+      document.querySelectorAll('.wave-mode-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.wave-mode-btn').forEach((b) => b.classList.remove('hw-btn-active'));
+          btn.classList.add('hw-btn-active');
+          activeWaveMode = btn.getAttribute('data-wave');
+          document.getElementById('activePatternBadge').textContent = modeTitles[activeWaveMode];
+          playPiezoClick(560, 0.1);
+        });
+      });
+
+      // Exploded CAD View Toggle
+      const explodeViewBtn = document.getElementById('explodeViewBtn');
+      explodeViewBtn.addEventListener('click', () => {
+        isExplodedCAD = !isExplodedCAD;
+        explodeViewBtn.textContent = isExplodedCAD ? '🔩 Exploded CAD View: ON' : '🔩 Exploded CAD View: OFF';
+        explodeViewBtn.classList.toggle('hw-btn-active', isExplodedCAD);
+        playPiezoClick(isExplodedCAD ? 720 : 440, 0.12);
+        showToast(isExplodedCAD ? '🔩 Exploded 3-layer piezo-origami CAD assembly' : '🔩 Collapsed assembly to normal operating state');
+      });
+
+      // Frequency & Amplitude Sliders
+      document.getElementById('waveFreqSlider').addEventListener('input', (e) => {
+        waveFreq = parseFloat(e.target.value);
+        document.getElementById('freqLabel').textContent = waveFreq.toFixed(1) + ' Hz';
+      });
+      document.getElementById('waveAmpSlider').addEventListener('input', (e) => {
+        const pct = parseInt(e.target.value, 10);
+        waveAmp = pct / 100;
+        document.getElementById('ampLabel').textContent = pct + '%';
+        document.getElementById('strokeTelemetry').textContent = (38.4 * waveAmp).toFixed(1) + ' mm';
+      });
+
+      // Camera View Presets
+      document.getElementById('camAngleTopBtn').addEventListener('click', () => {
+        camTargetPos.set(0, 21.5, 0.01);
+        playPiezoClick(500, 0.08);
+      });
+      document.getElementById('camAngleIsoBtn').addEventListener('click', () => {
+        camTargetPos.set(0, 14.5, 16.5);
+        playPiezoClick(600, 0.08);
+      });
+
+      // ResizeObserver for Crisp Full-Laptop Viewport Scaling
+      function syncStageViewport() {
+        const sz = getStageSize();
+        camera.aspect = sz.w / sz.h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(sz.w, sz.h);
+      }
+      window.addEventListener('resize', syncStageViewport);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(syncStageViewport).observe(stageMount);
+      }
+
+      // Color interpolation for piston elevation
+      const colLow = new THREE.Color(0xd6d1c4);
+      const colMid = new THREE.Color(0xf59e0b);
+      const colHigh = new THREE.Color(0xff4f18);
+
+      let simClock = 0;
+      function animateKineticMatrix() {
+        requestAnimationFrame(animateKineticMatrix);
+        simClock += 0.016 * waveFreq;
+
+        // Smooth camera transition
+        camera.position.lerp(camTargetPos, 0.08);
+        camera.lookAt(0, 0, 0);
+
+        // Gently rotate matrix
+        if (!isCursorInside) {
+          matrixGroup.rotation.y = Math.sin(simClock * 0.25) * 0.22;
+        } else {
+          matrixGroup.rotation.y += (mouseNDC.x * 0.25 - matrixGroup.rotation.y) * 0.05;
+        }
+
+        // Advance active click ripples
+        for (let r = ripples.length - 1; r >= 0; r--) {
+          ripples[r].age += 0.14;
+          ripples[r].strength *= 0.982;
+          if (ripples[r].strength < 0.03) ripples.splice(r, 1);
+        }
+
+        const targetBaseY = isExplodedCAD ? -2.6 : -1.2;
+        basePlateMesh.position.y += (targetBaseY - basePlateMesh.position.y) * 0.1;
+
+        for (let i = 0; i < pistons.length; i++) {
+          const p = pistons[i];
+          const distCenter = Math.hypot(p.wx, p.wz);
+          let h = 0;
+          let tiltX = 0;
+          let tiltZ = 0;
+
+          if (activeWaveMode === 'ripple') {
+            h = Math.sin(distCenter * 1.15 - simClock * 2.2) * 0.75;
+          } else if (activeWaveMode === 'solar') {
+            // Heliotropic tilt toward cursor or virtual sun
+            const sunX = isCursorInside ? cursorWorld.x : Math.cos(simClock) * 5;
+            const sunZ = isCursorInside ? cursorWorld.z : Math.sin(simClock) * 5;
+            h = ((p.wx * sunX + p.wz * sunZ) * 0.04) + Math.sin(simClock + p.gx * 0.3) * 0.25;
+            tiltX = (sunZ - p.wz) * 0.055;
+            tiltZ = -(sunX - p.wx) * 0.055;
+          } else if (activeWaveMode === 'acoustic') {
+            // Parabolic acoustic bowl focusing sound waves
+            h = (distCenter * distCenter) * 0.045 - 0.9 + Math.sin(simClock * 3.0) * 0.22;
+            tiltX = -p.wz * 0.06;
+            tiltZ = p.wx * 0.06;
+          } else if (activeWaveMode === 'terrain') {
+            // Biomimetic peristaltic wave
+            h = Math.sin(p.wx * 0.65 + simClock) * Math.cos(p.wz * 0.65 + simClock * 0.8) * 1.15;
+          }
+
+          // Add interactive click ripples
+          for (let r = 0; r < ripples.length; r++) {
+            const rp = ripples[r];
+            const dRip = Math.hypot(p.wx - rp.x, p.wz - rp.z);
+            h += Math.sin(dRip * 2.2 - rp.age * 3.5) * Math.exp(-dRip * 0.28) * rp.strength;
+          }
+
+          // Add magnetic cursor elevation boost
+          if (isCursorInside) {
+            const dCur = Math.hypot(p.wx - cursorWorld.x, p.wz - cursorWorld.z);
+            if (dCur < 3.2) {
+              h += Math.cos((dCur / 3.2) * (Math.PI / 2)) * 1.15;
+            }
+          }
+
+          h *= waveAmp;
+          p.height += (h - p.height) * 0.18;
+          p.group.position.y = p.height;
+          p.group.rotation.x += (tiltX - p.group.rotation.x) * 0.15;
+          p.group.rotation.z += (tiltZ - p.group.rotation.z) * 0.15;
+
+          // Exploded CAD separation between cap and stem
+          const targetCapOffset = isExplodedCAD ? 1.15 : 0;
+          p.capMesh.position.y += (targetCapOffset - p.capMesh.position.y) * 0.12;
+
+          // Dynamic thermal/elevation color mapping
+          const norm = Math.max(0, Math.min(1, (p.height + 1.1) / 2.3));
+          if (norm < 0.55) {
+            p.capMat.color.copy(colLow).lerp(colMid, norm / 0.55);
+          } else {
+            p.capMat.color.copy(colMid).lerp(colHigh, (norm - 0.55) / 0.45);
+          }
+        }
+
+        renderer.render(scene, camera);
+      }
+      animateKineticMatrix();
+
+      // =======================================================================
+      // 4. SECTION 02: LIVE 2D SOLAR RAY-TRACER & AIRFLOW WIND TUNNEL
+      // =======================================================================
+      const rayCanvas = document.getElementById('rayTracerCanvas');
+      const rCtx = rayCanvas.getContext('2d');
+      let sunAngleDeg = 32;
+      let louverTiltDeg = 18;
+      let windSpeed = 14.5;
+      let autoTrackSun = true;
+
+      const windParticles = Array.from({ length: 55 }, () => ({
+        x: Math.random() * 800,
+        y: 30 + Math.random() * 270,
+        speed: 0.7 + Math.random() * 0.6
+      }));
+
+      function updateRayTracerMetrics() {
+        if (autoTrackSun) {
+          louverTiltDeg = Math.round(sunAngleDeg * 0.58);
+          document.getElementById('louverTiltSlider').value = louverTiltDeg;
+          document.getElementById('louverTiltVal').textContent = `Auto (${louverTiltDeg}°)`;
+        } else {
+          document.getElementById('louverTiltVal').textContent = `${louverTiltDeg}°`;
+        }
+
+        const alignmentError = Math.abs(sunAngleDeg * 0.58 - louverTiltDeg);
+        const efficiency = Math.max(38, Math.min(98.4, 97.2 - alignmentError * 0.95));
+        const watts = Math.round(efficiency * 2.52);
+        const cooling = -(3.2 + (windSpeed / 30) * 4.5).toFixed(1);
+
+        document.getElementById('rayHarvestWatt').textContent = `${watts} W/m²`;
+        document.getElementById('rayCoolingDelta').textContent = `${cooling} °C`;
+        document.getElementById('opticalEfficiencyBarText').textContent = `${efficiency.toFixed(1)}% Photon Capture`;
+        document.getElementById('opticalEfficiencyBar').style.width = `${efficiency}%`;
+      }
+
+      document.getElementById('sunAngleSlider').addEventListener('input', (e) => {
+        sunAngleDeg = parseFloat(e.target.value);
+        document.getElementById('sunAngleVal').textContent = (sunAngleDeg >= 0 ? '+' : '') + sunAngleDeg + '° Zenith';
+        updateRayTracerMetrics();
+      });
+
+      document.getElementById('louverTiltSlider').addEventListener('input', (e) => {
+        autoTrackSun = false;
+        document.getElementById('autoTrackSunToggle').checked = false;
+        louverTiltDeg = parseFloat(e.target.value);
+        updateRayTracerMetrics();
+      });
+
+      document.getElementById('windVelocitySlider').addEventListener('input', (e) => {
+        windSpeed = parseFloat(e.target.value);
+        document.getElementById('windVelocityVal').textContent = windSpeed.toFixed(1) + ' m/s';
+        updateRayTracerMetrics();
+      });
+
+      document.getElementById('autoTrackSunToggle').addEventListener('change', (e) => {
+        autoTrackSun = e.target.checked;
+        updateRayTracerMetrics();
+      });
+
+      function drawRayTracer() {
+        requestAnimationFrame(drawRayTracer);
+        const w = rayCanvas.clientWidth || 700;
+        const h = rayCanvas.clientHeight || 330;
+        if (rayCanvas.width !== w || rayCanvas.height !== h) {
+          rayCanvas.width = w;
+          rayCanvas.height = h;
+        }
+
+        rCtx.clearRect(0, 0, w, h);
+
+        // Exterior vs Interior Building Zone Labels
+        const wallX = w * 0.54;
+        rCtx.strokeStyle = 'rgba(255,255,255,0.12)';
+        rCtx.setLineDash([4, 4]);
+        rCtx.beginPath();
+        rCtx.moveTo(wallX, 0);
+        rCtx.lineTo(wallX, h);
+        rCtx.stroke();
+        rCtx.setLineDash([]);
+
+        rCtx.fillStyle = 'rgba(255,255,255,0.35)';
+        rCtx.font = '11px JetBrains Mono, monospace';
+        rCtx.fillText('EXTERIOR SOLAR & WIND FIELD', 18, 26);
+        rCtx.fillText('INTERIOR DAYLIGHT & LAMINAR COOLING', wallX + 24, 26);
+
+        // Draw 6 Kinetic Metamaterial Louvers along wallX
+        const louverCount = 6;
+        const tiltRad = (louverTiltDeg * Math.PI) / 180;
+        const sunRad = (sunAngleDeg * Math.PI) / 180;
+
+        for (let i = 0; i < louverCount; i++) {
+          const ly = 58 + i * 46;
+
+          // Incoming Solar Photon Ray from Left
+          const rayStartX = 20;
+          const rayStartY = ly - Math.tan(sunRad) * (wallX - rayStartX) * 0.45;
+
+          rCtx.strokeStyle = 'rgba(251, 191, 36, 0.72)';
+          rCtx.lineWidth = 2;
+          rCtx.beginPath();
+          rCtx.moveTo(rayStartX, rayStartY);
+          rCtx.lineTo(wallX, ly);
+          rCtx.stroke();
+
+          // Reflected/Concentrated Photon Ray onto Perovskite Collector
+          const reflectAngle = 2 * tiltRad - sunRad * 0.45;
+          const bounceX = wallX - Math.cos(reflectAngle) * 65;
+          const bounceY = ly - Math.sin(reflectAngle) * 55;
+          rCtx.strokeStyle = '#ff4f18';
+          rCtx.lineWidth = 2.2;
+          rCtx.beginPath();
+          rCtx.moveTo(wallX, ly);
+          rCtx.lineTo(bounceX, bounceY);
+          rCtx.stroke();
+
+          // Louver Blade
+          rCtx.save();
+          rCtx.translate(wallX, ly);
+          rCtx.rotate(tiltRad);
+          rCtx.fillStyle = '#e7e2d5';
+          rCtx.fillRect(-26, -4, 52, 8);
+          rCtx.fillStyle = '#ff4f18';
+          rCtx.fillRect(-26, -4, 14, 8);
+          rCtx.restore();
+        }
+
+        // Laminar Wind Streamlines passing through louvers into Interior
+        rCtx.fillStyle = '#14b8a6';
+        for (let i = 0; i < windParticles.length; i++) {
+          const pt = windParticles[i];
+          pt.x += (windSpeed * 0.25) * pt.speed;
+          if (pt.x > w) pt.x = 0;
+
+          // Deflect y slightly when crossing wallX louver plane
+          const distWall = pt.x - wallX;
+          let py = pt.y;
+          if (distWall > 0) {
+            py += Math.sin(tiltRad) * Math.min(60, distWall * 0.28);
+          }
+
+          rCtx.beginPath();
+          rCtx.arc(pt.x, py, 2.2, 0, Math.PI * 2);
+          rCtx.fill();
+
+          rCtx.strokeStyle = 'rgba(20, 184, 166, 0.28)';
+          rCtx.lineWidth = 1.2;
+          rCtx.beginPath();
+          rCtx.moveTo(pt.x, py);
+          rCtx.lineTo(pt.x - 18, py);
+          rCtx.stroke();
+        }
+      }
+      updateRayTracerMetrics();
+      drawRayTracer();
+
+      // =======================================================================
+      // 5. SECTION 03: SDK CODE SWITCHER & PIEZO OSCILLOSCOPE
+      // =======================================================================
+      const sdkSnippets = {
+        ts: `<span class="text-[#ff4f18]">import</span> { ArkheSurface } <span class="text-[#ff4f18]">from</span> <span class="text-amber-300">'@arkhe/matter-sdk'</span>;\n\n<span class="text-stone-500">// Connect to 16x16 Piezo-Origami Tile over WebUSB or PoE+</span>\n<span class="text-[#ff4f18]">const</span> tile = <span class="text-[#ff4f18]">await</span> ArkheSurface.<span class="text-teal-300">mount</span>(<span class="text-amber-300">'usb://arkhe-tile-01'</span>);\n\ntile.<span class="text-teal-300">runShader</span>((x, y, t) =&gt; ({\n  strokeMm: Math.<span class="text-teal-300">sin</span>(Math.<span class="text-teal-300">hypot</span>(x - <span class="text-amber-300">8</span>, y - <span class="text-amber-300">8</span>) - t * <span class="text-amber-300">3.0</span>) * <span class="text-amber-300">24.0</span>,\n  tiltDeg:  tile.solarSensor.<span class="text-teal-300">optimalZenith</span>(x, y),\n  damping:  <span class="text-amber-300">0.88</span>\n}));`,
+        rust: `<span class="text-[#ff4f18]">use</span> arkhe_hal::{PiezoMatrix, KelvinBus};\n\n<span class="text-[#ff4f18]">#[no_std_main]</span>\n<span class="text-[#ff4f18]">fn</span> <span class="text-teal-300">step_actuators</span>(matrix: &amp;<span class="text-[#ff4f18]">mut</span> PiezoMatrix&lt;<span class="text-amber-300">256</span>&gt;, t_us: u64) {\n    <span class="text-[#ff4f18]">for</span> cell <span class="text-[#ff4f18]">in</span> matrix.<span class="text-teal-300">iter_mut</span>() {\n        cell.<span class="text-teal-300">set_voltage_mv</span>(<span class="text-amber-300">48_000</span>);\n        cell.<span class="text-teal-300">align_normal</span>(matrix.<span class="text-teal-300"> incident_sun_vec</span>(t_us));\n    }\n}`,
+        py: `<span class="text-[#ff4f18]">import</span> arkhe_matter <span class="text-[#ff4f18]">as</span> ak\n<span class="text-[#ff4f18]">import</span> numpy <span class="text-[#ff4f18]">as</span> np\n\nwall = ak.<span class="text-teal-300">FacadeArray</span>(ip=<span class="text-amber-300">"192.168.1.40"</span>, tiles=(<span class="text-amber-300">4</span>, <span class="text-amber-300">4</span>))\nfield = np.<span class="text-teal-300">sin</span>(wall.grid_r - wall.clock * <span class="text-amber-300">2.4</span>) * <span class="text-amber-300">35.0</span>\nwall.<span class="text-teal-300">push_elevation_mm</span>(field, latency_SubMs=<span class="text-amber-300">0.4</span>)`
+      };
+
+      const sdkCodeBlock = document.getElementById('sdkCodeBlock');
+      document.querySelectorAll('.sdk-lang-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sdk-lang-btn').forEach((b) => b.classList.remove('hw-btn-active'));
+          btn.classList.add('hw-btn-active');
+          sdkCodeBlock.innerHTML = sdkSnippets[btn.getAttribute('data-lang')];
+          playPiezoClick(480, 0.08);
+        });
+      });
+
+      document.getElementById('copySdkBtn').addEventListener('click', () => {
+        if (navigator.clipboard) navigator.clipboard.writeText(sdkCodeBlock.innerText).catch(() => {});
+        showToast('📋 Copied MatterScript™ hardware shader to clipboard');
+        playPiezoClick(660, 0.1);
+      });
+
+      // Live Piezo Stress Oscilloscope
+      const oscCanvas = document.getElementById('oscilloscopeCanvas');
+      const oCtx = oscCanvas.getContext('2d');
+      let oscPhase = 0;
+      let oscOverdrive = 1.0;
+      let cycleCounter = 104820910;
+
+      document.getElementById('overdriveTestBtn').addEventListener('click', () => {
+        oscOverdrive = 3.2;
+        playPiezoClick(780, 0.25, 'sawtooth');
+        showToast('⚡ 200Hz Piezo Overdrive Stress Burst passed — 0.00% hinge fatigue');
+      });
+
+      function drawOscilloscope() {
+        requestAnimationFrame(drawOscilloscope);
+        const w = oscCanvas.clientWidth || 340;
+        const h = oscCanvas.clientHeight || 112;
+        if (oscCanvas.width !== w || oscCanvas.height !== h) {
+          oscCanvas.width = w;
+          oscCanvas.height = h;
+        }
+        oCtx.clearRect(0, 0, w, h);
+
+        oscPhase += 0.09 * oscOverdrive;
+        oscOverdrive += (1.0 - oscOverdrive) * 0.03;
+        cycleCounter += Math.round(14 * oscOverdrive);
+        document.getElementById('oscCycles').textContent = cycleCounter.toLocaleString();
+        document.getElementById('oscVoltage').textContent = (48 * oscOverdrive).toFixed(1) + ' V';
+
+        oCtx.strokeStyle = '#ff4f18';
+        oCtx.lineWidth = 2.2;
+        oCtx.beginPath();
+        for (let x = 0; x < w; x++) {
+          const y = h / 2 + Math.sin(x * 0.045 * oscOverdrive - oscPhase) * (h * 0.34) * Math.sin(x * 0.01 + oscPhase * 0.2);
+          if (x === 0) oCtx.moveTo(x, y);
+          else oCtx.lineTo(x, y);
+        }
+        oCtx.stroke();
+      }
+      drawOscilloscope();
+
+      // =======================================================================
+      // 6. SECTION 04: BUILDING FACADE ROI CALCULATOR
+      // =======================================================================
+      const facadeAreaSlider = document.getElementById('facadeAreaSlider');
+      let climateMultiplier = 1.35;
+
+      function updateFacadeCalc() {
+        const area = parseInt(facadeAreaSlider.value, 10);
+        const tiles = area * 4;
+        document.getElementById('facadeAreaVal').textContent = `${area.toLocaleString()} m² (${tiles.toLocaleString()} Tiles)`;
+
+        const mwh = Math.round(area * 0.24 * climateMultiplier);
+        const db = -(14.2 + Math.min(8.5, area / 600)).toFixed(1);
+        const savings = Math.round(mwh * 340 + area * 9.5);
+
+        document.getElementById('calcMwhOutput').textContent = `${mwh.toLocaleString()} MWh/yr`;
+        document.getElementById('calcDbOutput').textContent = `${db} dB`;
+        document.getElementById('calcSavingsOutput').textContent = `$${savings.toLocaleString()} / yr`;
+      }
+
+      facadeAreaSlider.addEventListener('input', updateFacadeCalc);
+      document.querySelectorAll('.climate-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.climate-btn').forEach((b) => b.classList.remove('hw-btn-active'));
+          btn.classList.add('hw-btn-active');
+          climateMultiplier = parseFloat(btn.getAttribute('data-mult'));
+          updateFacadeCalc();
+          playPiezoClick(520, 0.08);
+        });
+      });
+
+      document.querySelectorAll('.reserve-kit-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const kit = btn.getAttribute('data-kit');
+          playPiezoClick(680, 0.14);
+          showToast(`✓ Added ${kit} to hardware reservation queue`);
+        });
+      });
+
+      // =======================================================================
+      // 7. COMMAND PALETTE MODAL (⌘K)
+      // =======================================================================
+      const cmdModal = document.getElementById('cmdModal');
+      const cmdInput = document.getElementById('cmdInput');
+
+      function openCmd() {
+        cmdModal.classList.remove('hidden');
+        cmdModal.classList.add('flex');
+        cmdInput.value = '';
+        setTimeout(() => cmdInput.focus(), 50);
+        playPiezoClick(540, 0.08);
+      }
+
+      function closeCmd() {
+        cmdModal.classList.remove('flex');
+        cmdModal.classList.add('hidden');
+      }
+
+      document.getElementById('openCmdBtn').addEventListener('click', openCmd);
+      cmdModal.addEventListener('click', (e) => {
+        if (e.target === cmdModal) closeCmd();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          cmdModal.classList.contains('flex') ? closeCmd() : openCmd();
+        } else if (e.key === 'Escape') {
+          closeCmd();
+        }
+      });
+
+      document.querySelectorAll('.cmd-row').forEach((row) => {
+        row.addEventListener('click', () => {
+          const cmd = row.getAttribute('data-cmd');
+          closeCmd();
+          if (cmd === 'impulse') document.getElementById('dropImpulseBtn').click();
+          if (cmd === 'explode') document.getElementById('explodeViewBtn').click();
+          if (cmd === 'theme') toggleTheme();
+          if (cmd === 'ray') document.getElementById('raytracer').scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+    };
+  </script>
+</body>
+</html>

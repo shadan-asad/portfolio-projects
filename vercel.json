@@ -1,0 +1,54 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/aetheria",
+      "destination": "/aetheria_geneva_1884_maison_de_haute_horlogerie_biaxial_tourbillon.html"
+    },
+    {
+      "source": "/aetheris",
+      "destination": "/aetheris_startup_landing_page.html"
+    },
+    {
+      "source": "/arkhe",
+      "destination": "/arkhe_programmable_matter_kinetic_metamaterial_surfaces.html"
+    },
+    {
+      "source": "/prism",
+      "destination": "/prism_ai_generative_3d_world_simulation_physical_intelligence.html"
+    },
+    {
+      "source": "/solstice",
+      "destination": "/solstice_wild_harvested_adaptogenic_botanicals_night_bloom_elixir.html"
+    },
+    {
+      "source": "/synthoma",
+      "destination": "/synthoma_autonomous_morphogenetic_compute_neural_fluid_foundry.html"
+    },
+    {
+      "source": "/aetheria_geneva_1884_maison_de_haute_horlogerie_biaxial_tourbillon",
+      "destination": "/aetheria_geneva_1884_maison_de_haute_horlogerie_biaxial_tourbillon.html"
+    },
+    {
+      "source": "/aetheris_startup_landing_page",
+      "destination": "/aetheris_startup_landing_page.html"
+    },
+    {
+      "source": "/arkhe_programmable_matter_kinetic_metamaterial_surfaces",
+      "destination": "/arkhe_programmable_matter_kinetic_metamaterial_surfaces.html"
+    },
+    {
+      "source": "/prism_ai_generative_3d_world_simulation_physical_intelligence",
+      "destination": "/prism_ai_generative_3d_world_simulation_physical_intelligence.html"
+    },
+    {
+      "source": "/solstice_wild_harvested_adaptogenic_botanicals_night_bloom_elixir",
+      "destination": "/solstice_wild_harvested_adaptogenic_botanicals_night_bloom_elixir.html"
+    },
+    {
+      "source": "/synthoma_autonomous_morphogenetic_compute_neural_fluid_foundry",
+      "destination": "/synthoma_autonomous_morphogenetic_compute_neural_fluid_foundry.html"
+    }
+  ]
+}

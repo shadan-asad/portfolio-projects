@@ -1,0 +1,13 @@
+{
+  "name": "portfolio-projects",
+  "version": "1.0.0",
+  "description": "Interactive WebGL, 3D simulations, and frontend portfolio projects showcase",
+  "scripts": {
+    "build": "node build.js",
+    "start": "npx serve ."
+  },
+  "keywords": ["portfolio", "showcase", "threejs", "webgl", "landing-page"],
+  "author": "",
+  "license": "MIT"
+}
+

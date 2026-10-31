@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prism AI — Generative 3D World Simulation &amp; Physical Intelligence</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg-base: #06070b;
+      --bg-surface: #0c0e17;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.4);
+      --accent-cyan: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-violet: #a855f7;
+      --accent-emerald: #10b981;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: #f1f5f9;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Ambient Spatial Backdrops */
+    .bg-grid-pattern {
+      background-size: 48px 48px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    }
+
+    .aurora-glow {
+      position: absolute;
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 550px;
+      background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(99, 102, 241, 0.18), rgba(56, 189, 248, 0.12), transparent 70%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glass-card {
+      background: rgba(13, 17, 28, 0.75);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Bento Spotlight Hover Effect */
+    .bento-spotlight {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bento-spotlight::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(99, 102, 241, 0.15),
+        transparent 45%
+      );
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bento-spotlight:hover::before {
+      opacity: 1;
+    }
+
+    .bento-spotlight > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Range input styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+    }
+
+    /* Marquee Animation */
+    @keyframes marqueeRun {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .marquee-inner {
+      display: flex;
+      width: max-content;
+      animation: marqueeRun 28s linear infinite;
+    }
+
+    .marquee-inner:hover {
+      animation-play-state: paused;
+    }
+
+    /* Command Palette Animation */
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(-10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-animate {
+      animation: modalFadeIn 0.2s var(--ease-out);
+    }
+  </style>
+</head>
+<body class="relative bg-[#06070b] text-slate-100 selection:bg-sky-500 selection:text-slate-950">
+
+  <!-- Background Ambience -->
+  <div class="fixed inset-0 bg-grid-pattern pointer-events-none z-0 opacity-60"></div>
+  <div class="aurora-glow"></div>
+
+  <!-- Announcement Bar -->
+  <div class="relative z-30 border-b border-white/[0.08] bg-gradient-to-r from-indigo-950/40 via-sky-950/40 to-purple-950/40 px-4 py-2 text-center text-xs text-slate-300">
+    <div class="inline-flex items-center gap-2">
+      <span class="rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-400 border border-sky-400/30">Release 4.0</span>
+      <span>Introducing <strong>Prism WorldEngine™</strong> — Real-time 4D neural physics at 120 FPS.</span>
+      <a href="#playground" class="font-semibold text-white hover:text-sky-400 underline transition-colors ml-1">Try live benchmark &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Glass Navbar -->
+  <header class="sticky top-3 z-40 px-4 max-w-6xl mx-auto">
+    <nav class="glass-card rounded-2xl px-5 py-3 flex items-center justify-between border border-white/10 shadow-2xl">
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2.5 text-white font-extrabold text-lg tracking-tight">
+        <span class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-400 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-sky-500/30 text-white font-mono-code text-sm">
+          ▲
+        </span>
+        <span>Prism<span class="text-sky-400 font-light">AI</span></span>
+      </a>
+
+      <!-- Desktop Links -->
+      <div class="hidden md:flex items-center gap-7 text-xs font-semibold text-slate-300">
+        <a href="#hero-3d" class="hover:text-white transition-colors">Neural Core</a>
+        <a href="#bento" class="hover:text-white transition-colors">Architecture</a>
+        <a href="#playground" class="hover:text-white transition-colors">Simulation Lab</a>
+        <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2.5">
+        <button id="openCmdBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-300 transition-all cursor-pointer" title="Quick Command Palette (⌘K)">
+          <span class="hidden sm:inline">Search...</span>
+          <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono-code text-slate-300">⌘K</kbd>
+        </button>
+        <button id="audioToggleBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-300 transition-all cursor-pointer" title="Toggle Synthesized Audio Feedback">
+          <span id="audioIcon">🔊</span>
+        </button>
+        <a href="#pricing" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-400 to-indigo-500 hover:from-sky-300 hover:to-indigo-400 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/20 transition-all transform hover:-translate-y-0.5">
+          Get API Key
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="relative z-10 max-w-6xl mx-auto px-4 pt-12 pb-24 space-y-24">
+    <!-- Hero Section -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center pt-4" id="hero-3d">
+      <!-- Left Column: Copy & CTAs -->
+      <div class="lg:span-7 space-y-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs text-slate-300 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Physical Intelligence Infrastructure</span>
+          <span class="text-slate-500">&middot;</span>
+          <span class="text-sky-400 font-mono-code">v4.0 Live</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.08]">
+          Foundation models for the <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400">physical world.</span>
+        </h1>
+
+        <p class="text-base sm:text-lg text-slate-400 max-w-xl leading-relaxed">
+          Prism converts spatial point clouds, CAD meshes, and video streams into real-time neural physics engines. Simulate robotics, fluid kinematics, and 4D environments at 10x lower latency.
+        </p>
+
+        <!-- CTA Row -->
+        <div class="flex flex-wrap items-center gap-3 pt-2">
+          <a href="#playground" class="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-bold text-sm shadow-xl shadow-white/10 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+            <span>Explore Live Lab</span>
+            <span>&rarr;</span>
+          </a>
+          <button id="heroBurstBtn" class="px-5 py-3.5 rounded-xl glass-card hover:bg-white/10 border border-white/15 text-slate-200 font-semibold text-sm transition-all flex items-center gap-2 cursor-pointer">
+            <span class="text-sky-400">⚡</span>
+            <span>Trigger Shockwave</span>
+          </button>
+        </div>
+
+        <!-- Quick Terminal Pill -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/80 border border-white/10 font-mono-code text-xs text-slate-300 max-w-md">
+          <div class="flex items-center gap-2 truncate">
+            <span class="text-sky-400 font-bold">$</span>
+            <span class="text-slate-400">npm i</span>
+            <span class="text-purple-300">@prism-ai/world-engine</span>
+          </div>
+          <button id="copyCliBtn" class="ml-2 px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-slate-200 text-[11px] font-semibold transition-all cursor-pointer">
+            Copy
+          </button>
+        </div>
+
+        <!-- Metric Badges -->
+        <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/[0.08] max-w-lg">
+          <div>
+            <div class="text-2xl font-extrabold text-white font-mono-code">8.4ms</div>
+            <div class="text-[11px] text-slate-400">Sub-Frame Latency</div>
+          </div>
+          <div>
+            <div class="text-2xl font-extrabold text-white font-mono-code">120 FPS</div>
+            <div class="text-[11px] text-slate-400">Neural Physics Rate</div>
+          </div>
+          <div>
+            <div class="text-2xl font-extrabold text-white font-mono-code">99.98%</div>
+            <div class="text-[11px] text-slate-400">Rigid Body Accuracy</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive 3D Three.js Quantum Polyhedron Stage -->
+      <div class="lg:col-span-5 relative">
+        <div class="glass-card rounded-3xl p-3 border border-white/15 shadow-2xl relative overflow-hidden aspect-square flex flex-col justify-between" id="canvasCard">
+          <!-- Top HUD on 3D Stage -->
+          <div class="relative z-20 flex items-center justify-between p-2 text-xs font-mono-code pointer-events-none">
+            <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-black/60 border border-white/10 text-slate-300 pointer-events-auto">
+              <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+              <span>RENDER: <strong id="hudFpsText" class="text-sky-400 font-bold">60 FPS</strong></span>
+            </div>
+            <div class="px-2.5 py-1 rounded-lg bg-black/60 border border-white/10 text-slate-300 pointer-events-auto">
+              <span>PARTICLES: <strong class="text-purple-300">850</strong></span>
+            </div>
+          </div>
+
+          <!-- Three.js Canvas Container -->
+          <div id="threeHeroMount" class="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing z-10"></div>
+
+          <!-- Bottom Stage Control Bar -->
+          <div class="relative z-20 flex flex-wrap items-center justify-between gap-2 p-2 pt-0 pointer-events-none">
+            <div class="flex items-center gap-1 p-1 rounded-xl bg-black/70 border border-white/10 pointer-events-auto text-xs">
+              <button class="stage-shape-btn px-2.5 py-1 rounded-lg font-semibold bg-sky-500 text-slate-950 transition-all cursor-pointer" data-shape="poly">
+                Polyhedron
+              </button>
+              <button class="stage-shape-btn px-2.5 py-1 rounded-lg font-semibold text-slate-400 hover:text-white transition-all cursor-pointer" data-shape="torus">
+                Hyper-Torus
+              </button>
+              <button class="stage-shape-btn px-2.5 py-1 rounded-lg font-semibold text-slate-400 hover:text-white transition-all cursor-pointer" data-shape="knot">
+                Knot
+              </button>
+            </div>
+            <button id="toggleWireBtn" class="px-3 py-1.5 rounded-xl bg-black/70 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 pointer-events-auto transition-all cursor-pointer">
+              X-Ray: OFF
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Logo Marquee -->
+    <section class="border-y border-white/[0.08] py-8 overflow-hidden">
+      <div class="text-center text-xs font-mono-code uppercase tracking-widest text-slate-500 mb-6">
+        Powering Next-Generation Robotics, Spatial Simulators &amp; Autonomous Agents
+      </div>
+      <div class="relative w-full mask-gradient">
+        <div class="marquee-inner flex gap-12 text-slate-400 font-bold text-sm tracking-wider uppercase">
+          <span class="flex items-center gap-2 hover:text-white transition-colors">❖ LUMINA DYNAMICS</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">⬢ NEXUS SPATIAL</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">◈ CHRONOS LABS</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">✦ VOXEL ROBOTICS</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">▲ HYPERION MOTORS</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">⬣ SYNAPSE VEHICLES</span>
+          <!-- Duplicate for continuous scroll loop -->
+          <span class="flex items-center gap-2 hover:text-white transition-colors">❖ LUMINA DYNAMICS</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">⬢ NEXUS SPATIAL</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">◈ CHRONOS LABS</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">✦ VOXEL ROBOTICS</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">▲ HYPERION MOTORS</span>
+          <span class="flex items-center gap-2 hover:text-white transition-colors">⬣ SYNAPSE VEHICLES</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Grid Feature Matrix -->
+    <section id="bento" class="space-y-8">
+      <div class="text-center max-w-2xl mx-auto space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-xs font-mono-code text-sky-400 uppercase tracking-widest">
+          Deterministic Architecture
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Engineered for zero-hallucination physics.
+        </h2>
+        <p class="text-sm sm:text-base text-slate-400">
+          Unlike standard video generation models, Prism embeds Hamiltonian neural networks to guarantee physical conservation laws across every simulated step.
+        </p>
+      </div>
+
+      <!-- Bento Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+        <!-- Card 1: Live Benchmark Replay (Span 7) -->
+        <div class="md:col-span-7 glass-card rounded-3xl p-6 bento-spotlight border border-white/10 flex flex-col justify-between gap-6">
+          <div class="space-y-2">
+            <span class="text-xs font-mono-code text-sky-400 uppercase tracking-wider">Hydrated Compute</span>
+            <h3 class="text-xl font-bold text-white">8.4ms Sub-Frame Latency Benchmark</h3>
+            <p class="text-xs sm:text-sm text-slate-400">
+              Direct GPU NVLink streaming bypasses typical OS kernel interrupts, completing 50,000 spatial collisions per frame.
+            </p>
+          </div>
+
+          <div class="bg-black/50 rounded-2xl p-4 border border-white/10 space-y-3 font-mono-code text-xs">
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-300">
+                <span class="text-sky-300 font-semibold">Prism WorldEngine™ (FP8)</span>
+                <span class="text-emerald-400 font-bold">8.4 ms (120 FPS)</span>
+              </div>
+              <div class="h-2 rounded-full bg-white/10 overflow-hidden">
+                <div id="benchBarPrism" class="h-full bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full w-[8%] transition-all duration-700"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-400">
+                <span>Traditional PhysX / Isaac Sim</span>
+                <span>64.2 ms (15 FPS)</span>
+              </div>
+              <div class="h-2 rounded-full bg-white/10 overflow-hidden">
+                <div id="benchBarTrad" class="h-full bg-indigo-500 rounded-full w-[64%] transition-all duration-700"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-500">
+                <span>Cloud Remote Rendering</span>
+                <span>142.0 ms (7 FPS)</span>
+              </div>
+              <div class="h-2 rounded-full bg-white/10 overflow-hidden">
+                <div id="benchBarCloud" class="h-full bg-slate-600 rounded-full w-[94%] transition-all duration-700"></div>
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-1">
+              <button id="rerunBenchBtn" class="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-sans font-semibold transition-all cursor-pointer">
+                ↻ Re-run Benchmark Test
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Multi-Modal Consensus Node Graph (Span 5) -->
+        <div class="md:col-span-5 glass-card rounded-3xl p-6 bento-spotlight border border-white/10 flex flex-col justify-between gap-6">
+          <div class="space-y-2">
+            <span class="text-xs font-mono-code text-indigo-400 uppercase tracking-wider">Multi-Region Raft Mesh</span>
+            <h3 class="text-xl font-bold text-white">Global State Consensus</h3>
+            <p class="text-xs text-slate-400">
+              Distributed agents sync coordinate transformations across global edge zones in sub-millisecond pings.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs font-mono-code" id="meshNodesContainer">
+            <div class="mesh-node p-2.5 rounded-xl bg-white/[0.04] border border-sky-400/50 flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-white"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> us-east-1</span>
+              <span class="text-emerald-300">3.8ms</span>
+            </div>
+            <div class="mesh-node p-2.5 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> eu-west-1</span>
+              <span class="text-emerald-300">6.1ms</span>
+            </div>
+            <div class="mesh-node p-2.5 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> ap-northeast</span>
+              <span class="text-emerald-300">8.9ms</span>
+            </div>
+            <div class="mesh-node p-2.5 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> us-west-2</span>
+              <span class="text-emerald-300">4.5ms</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Interactive SDK Switcher (Span 6) -->
+        <div class="md:col-span-6 glass-card rounded-3xl p-6 bento-spotlight border border-white/10 flex flex-col justify-between gap-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-mono-code text-purple-400 uppercase tracking-wider">Zero Boilerplate</span>
+              <h3 class="text-xl font-bold text-white">Drop-in SDK for Every Stack</h3>
+            </div>
+            <div class="flex gap-1 p-1 rounded-xl bg-black/60 border border-white/10 text-xs font-mono-code">
+              <button class="sdk-tab-btn px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-400/40 cursor-pointer" data-lang="ts">TS</button>
+              <button class="sdk-tab-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white cursor-pointer" data-lang="py">Python</button>
+              <button class="sdk-tab-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white cursor-pointer" data-lang="rust">Rust</button>
+            </div>
+          </div>
+
+          <div class="bg-black/70 rounded-2xl p-4 border border-white/10 overflow-x-auto font-mono-code text-xs leading-relaxed text-slate-300" id="codeBox">
+<span class="text-purple-400">import</span> { PrismWorld } <span class="text-purple-400">from</span> <span class="text-emerald-300">'@prism-ai/engine'</span>;
+
+<span class="text-slate-500">// Initialize real-time physics instance</span>
+<span class="text-purple-400">const</span> world = <span class="text-purple-400">await</span> PrismWorld.<span class="text-sky-400">connect</span>({
+  apiKey: process.env.PRISM_KEY,
+  substepFps: <span class="text-amber-400">120</span>,
+  precision: <span class="text-emerald-300">'fp8'</span>
+});
+
+<span class="text-purple-400">const</span> robot = world.<span class="text-sky-400">spawnKinematicActor</span>(<span class="text-emerald-300">'urdf://arm-v3'</span>);
+robot.<span class="text-sky-400">onCollide</span>((event) =&gt; console.log(<span class="text-emerald-300">'Impact:'</span>, event.force));
+          </div>
+
+          <div class="flex justify-end">
+            <button id="copySnippetBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-xs font-semibold text-slate-300 transition-all cursor-pointer">
+              Copy Snippet
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 4: Streaming Neural Rollouts Terminal (Span 6) -->
+        <div class="md:col-span-6 glass-card rounded-3xl p-6 bento-spotlight border border-white/10 flex flex-col justify-between gap-5">
+          <div class="space-y-1">
+            <span class="text-xs font-mono-code text-emerald-400 uppercase tracking-wider">Hamiltonian Rollouts</span>
+            <h3 class="text-xl font-bold text-white">Live Physical Rollout Stream</h3>
+            <p class="text-xs text-slate-400">Watch the predictive world model simulate 64 forward trajectories simultaneously.</p>
+          </div>
+
+          <div class="bg-black/70 rounded-2xl p-4 border border-white/10 font-mono-code text-xs space-y-2 min-h-[160px] flex flex-col justify-between">
+            <div id="terminalStreamBox" class="text-slate-300 leading-relaxed"></div>
+            <div class="flex items-center justify-between pt-2 border-t border-white/10 text-[11px] text-slate-400">
+              <span>STATUS: <strong class="text-emerald-400">STREAMING</strong></span>
+              <span>CONVERGENCE: <strong class="text-sky-400">99.96%</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Simulation Lab Playground -->
+    <section id="playground" class="space-y-8 pt-4">
+      <div class="text-center max-w-2xl mx-auto space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-xs font-mono-code text-indigo-400 uppercase tracking-widest">
+          Interactive Simulation Lab
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Test real-time capacity and savings.
+        </h2>
+        <p class="text-sm sm:text-base text-slate-400">
+          Adjust kinematic object density and neural physics parameters below to preview simulated cluster load and monthly compute costs.
+        </p>
+      </div>
+
+      <div class="glass-card rounded-3xl p-6 sm:p-8 border border-white/15 shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <!-- Sliders Column -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs font-semibold">
+              <label for="actorsRange" class="text-slate-300">Concurrent Kinematic Objects</label>
+              <span id="actorsDisplay" class="font-mono-code text-sky-400 bg-sky-500/10 border border-sky-400/30 px-2 py-0.5 rounded-lg">15,000 objects</span>
+            </div>
+            <input id="actorsRange" type="range" min="1000" max="100000" step="1000" value="15000" />
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono-code">
+              <span>1k (Indie)</span>
+              <span>50k (Factory Floor)</span>
+              <span>100k (Full City)</span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs font-semibold">
+              <label for="stepRateRange" class="text-slate-300">Physics Solver Frequency</label>
+              <span id="stepRateDisplay" class="font-mono-code text-emerald-400 bg-emerald-500/10 border border-emerald-400/30 px-2 py-0.5 rounded-lg">120 Hz</span>
+            </div>
+            <input id="stepRateRange" type="range" min="30" max="240" step="10" value="120" />
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono-code">
+              <span>30 Hz (Standard)</span>
+              <span>120 Hz (High Speed)</span>
+              <span>240 Hz (Aerospace)</span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="text-xs font-semibold text-slate-300">Precision Quantization Mode</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button class="precision-pill p-2 rounded-xl text-xs font-mono-code font-semibold bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer" data-quant="fp16">FP16</button>
+              <button class="precision-pill p-2 rounded-xl text-xs font-mono-code font-semibold bg-sky-500/20 border border-sky-400/40 text-sky-300 transition-all cursor-pointer" data-quant="fp8">FP8 (Recommended)</button>
+              <button class="precision-pill p-2 rounded-xl text-xs font-mono-code font-semibold bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer" data-quant="int4">INT4 Extreme</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projected Outputs Column -->
+        <div class="lg:col-span-6 grid grid-cols-2 gap-4">
+          <div class="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-1">
+            <div class="text-xs text-slate-400 font-medium">Predicted Frame Time</div>
+            <div id="simLatencyVal" class="text-2xl font-extrabold text-sky-400 font-mono-code">8.1 ms</div>
+            <div class="text-[11px] text-emerald-400">Solid 120 FPS headroom</div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-1">
+            <div class="text-xs text-slate-400 font-medium">GPU Tensor Cores Active</div>
+            <div id="simGpuVal" class="text-2xl font-extrabold text-purple-300 font-mono-code">42 Enclaves</div>
+            <div class="text-[11px] text-slate-400">Auto-balanced across PoPs</div>
+          </div>
+
+          <div class="col-span-2 p-5 rounded-2xl bg-gradient-to-br from-indigo-950/60 to-sky-950/60 border border-sky-400/30 space-y-1">
+            <div class="text-xs text-slate-300 font-medium">Estimated Monthly Cloud Infrastructure Savings</div>
+            <div id="simSavingsVal" class="text-3xl font-extrabold text-emerald-400 font-mono-code">$28,500 / mo</div>
+            <div class="text-xs text-slate-400">Over 68% savings compared to dedicated H100 GPU reservations</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="space-y-8 pt-6">
+      <div class="text-center max-w-2xl mx-auto space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/20 text-xs font-mono-code text-emerald-400 uppercase tracking-widest">
+          Transparent Scalability
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Start building free, scale seamlessly.
+        </h2>
+        <p class="text-sm sm:text-base text-slate-400">
+          Only pay for active millisecond simulation runtime. No idle cluster waste.
+        </p>
+
+        <!-- Monthly / Annual Toggle -->
+        <div class="flex items-center justify-center gap-3 pt-3 text-xs font-semibold">
+          <span class="text-slate-400">Monthly</span>
+          <button id="billingSwitch" class="relative w-12 h-6 rounded-full bg-sky-500/30 border border-sky-400/50 p-0.5 cursor-pointer transition-colors" role="switch" aria-label="Toggle annual commitment">
+            <span id="billingKnob" class="block w-5 h-5 rounded-full bg-white shadow-md transform translate-x-6 transition-transform"></span>
+          </button>
+          <span class="text-white font-bold">Annual Commitment</span>
+          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono-code border border-emerald-400/30">Save 20%</span>
+        </div>
+      </div>
+
+      <!-- Pricing Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        <!-- Tier 1: Starter -->
+        <div class="glass-card rounded-3xl p-6 border border-white/10 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-white">Developer Sandbox</h3>
+              <p class="text-xs text-slate-400 mt-1">For researchers, indie developers, and local simulation pilots.</p>
+            </div>
+            <div class="text-3xl font-extrabold text-white font-mono-code">$0</div>
+            <ul class="text-xs space-y-2.5 text-slate-300">
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> 5 concurrent simulation actors</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Standard 60 Hz physics solver</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Community Discord &amp; forum support</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Complete WebGL &amp; Python SDKs</li>
+            </ul>
+          </div>
+          <button class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs transition-all cursor-pointer">
+            Deploy Free Sandbox
+          </button>
+        </div>
+
+        <!-- Tier 2: Pro (Featured) -->
+        <div class="glass-card rounded-3xl p-6 border border-sky-400/40 relative shadow-2xl flex flex-col justify-between space-y-6 transform md:-translate-y-2 bg-gradient-to-b from-indigo-950/40 to-slate-950/90">
+          <span class="absolute -top-3 right-6 px-3 py-0.5 rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 text-slate-950 text-[10px] font-extrabold uppercase tracking-wider">
+            Most Popular
+          </span>
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-white">Startup Scale Pro</h3>
+              <p class="text-xs text-slate-400 mt-1">For robotics startups and high-velocity simulation products.</p>
+            </div>
+            <div class="flex items-baseline gap-1 font-mono-code">
+              <span id="priceProAmount" class="text-4xl font-extrabold text-white">$179</span>
+              <span class="text-xs text-slate-400">/ team / mo</span>
+            </div>
+            <ul class="text-xs space-y-2.5 text-slate-200">
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Up to 50,000 concurrent actors</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Extreme 120 Hz &amp; 240 Hz solvers</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> FP8 Tensor optimization pipeline</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Priority Slack &amp; shared Teams bridge</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> 99.95% uptime SLA guarantee</li>
+            </ul>
+          </div>
+          <button class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-400 to-indigo-500 hover:from-sky-300 hover:to-indigo-400 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/20 transition-all cursor-pointer">
+            Start 14-Day Free Trial
+          </button>
+        </div>
+
+        <!-- Tier 3: Enterprise -->
+        <div class="glass-card rounded-3xl p-6 border border-white/10 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-white">Sovereign Grid</h3>
+              <p class="text-xs text-slate-400 mt-1">Custom on-prem clusters, sovereign cloud, and defense robotics.</p>
+            </div>
+            <div class="text-3xl font-extrabold text-white font-mono-code">Custom</div>
+            <ul class="text-xs space-y-2.5 text-slate-300">
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Unlimited dedicated H100 / B200 clusters</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Air-gapped BYOC on AWS / GCP / Azure</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Custom CUDA driver &amp; kernel optimization</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> 24/7 dedicated solutions architects</li>
+            </ul>
+          </div>
+          <button class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs transition-all cursor-pointer">
+            Contact Architecture Team
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Banner CTA -->
+    <section class="glass-card rounded-3xl p-8 sm:p-12 text-center border border-sky-400/30 relative overflow-hidden bg-gradient-to-r from-indigo-950/40 via-slate-950/80 to-purple-950/40">
+      <div class="max-w-xl mx-auto space-y-4 relative z-10">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Ready to deploy spatial intelligence?
+        </h2>
+        <p class="text-sm text-slate-400">
+          Join 8,400+ robotics and physical AI engineers building the future on Prism. Start simulating in under two minutes.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <a href="#playground" class="px-6 py-3 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-bold text-xs transition-all">
+            Get Started Free
+          </a>
+          <button id="bottomCmdBtn" class="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition-all cursor-pointer">
+            Open Command Palette (⌘K)
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/[0.08] py-10 px-4 text-xs text-slate-500">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2 text-slate-400 font-bold">
+        <span class="w-5 h-5 rounded-md bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-[10px] text-white">▲</span>
+        <span>Prism AI, Inc. &copy; 2026. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#bento" class="hover:text-slate-300 transition-colors">Privacy</a>
+        <a href="#bento" class="hover:text-slate-300 transition-colors">Terms</a>
+        <a href="#bento" class="hover:text-slate-300 transition-colors">Status (100% Operational)</a>
+        <a href="#bento" class="hover:text-slate-300 transition-colors">Security (SOC2)</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Command Palette Modal (⌘K) -->
+  <div id="cmdModalOverlay" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md hidden items-start justify-center pt-24 px-4">
+    <div class="glass-card modal-animate w-full max-w-lg rounded-2xl border border-white/20 p-2 shadow-2xl overflow-hidden bg-[#0a0d18]">
+      <div class="flex items-center gap-3 px-3 py-2 border-b border-white/10">
+        <span class="text-slate-400">🔍</span>
+        <input id="cmdSearchInput" type="text" placeholder="Type a command or jump to section..." class="w-full bg-transparent border-none outline-none text-xs text-white placeholder-slate-500 font-sans" />
+        <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono-code text-slate-400">ESC</kbd>
+      </div>
+      <div class="p-2 space-y-1 max-h-64 overflow-y-auto" id="cmdActionsList">
+        <button class="cmd-item w-full text-left p-2.5 rounded-xl hover:bg-sky-500/20 text-xs text-slate-300 hover:text-white flex items-center justify-between cursor-pointer" data-act="shockwave">
+          <span>⚡ Trigger 3D Quantum Shockwave Particle Burst</span>
+          <span class="font-mono-code text-[10px] text-sky-400">Run</span>
+        </button>
+        <button class="cmd-item w-full text-left p-2.5 rounded-xl hover:bg-sky-500/20 text-xs text-slate-300 hover:text-white flex items-center justify-between cursor-pointer" data-act="shape-torus">
+          <span>🌀 Switch 3D Stage to Hyper-Torus Topology</span>
+          <span class="font-mono-code text-[10px] text-sky-400">3D</span>
+        </button>
+        <button class="cmd-item w-full text-left p-2.5 rounded-xl hover:bg-sky-500/20 text-xs text-slate-300 hover:text-white flex items-center justify-between cursor-pointer" data-act="shape-knot">
+          <span>🪢 Switch 3D Stage to Torus Knot Geometry</span>
+          <span class="font-mono-code text-[10px] text-sky-400">3D</span>
+        </button>
+        <button class="cmd-item w-full text-left p-2.5 rounded-xl hover:bg-sky-500/20 text-xs text-slate-300 hover:text-white flex items-center justify-between cursor-pointer" data-act="copy-cli">
+          <span>📋 Copy NPM CLI Quickstart Command</span>
+          <span class="font-mono-code text-[10px] text-sky-400">Copy</span>
+        </button>
+        <button class="cmd-item w-full text-left p-2.5 rounded-xl hover:bg-sky-500/20 text-xs text-slate-300 hover:text-white flex items-center justify-between cursor-pointer" data-act="jump-lab">
+          <span>📊 Jump to Interactive Simulation Lab</span>
+          <span class="font-mono-code text-[10px] text-sky-400">Go</span>
+        </button>
+        <button class="cmd-item w-full text-left p-2.5 rounded-xl hover:bg-sky-500/20 text-xs text-slate-300 hover:text-white flex items-center justify-between cursor-pointer" data-act="jump-pricing">
+          <span>💳 Jump to Pricing &amp; Consumption Tiers</span>
+          <span class="font-mono-code text-[10px] text-sky-400">Go</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastBox" class="fixed bottom-6 right-6 z-50 glass-card px-4 py-2.5 rounded-xl border border-sky-400/40 text-xs font-semibold text-white shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    Copied to clipboard!
+  </div>
+
+  <script>
+    window.onload = function () {
+      // =======================================================================
+      // 1. SYNTHESIZED WEB AUDIO FEEDBACK (NO EXTERNAL AUDIO FILES)
+      // =======================================================================
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      function getAudio() {
+        if (!soundEnabled) return null;
+        if (!audioCtx) {
+          const AudioClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioClass) audioCtx = new AudioClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+
+      function playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.08) {
+        const ctx = getAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(gainVal, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.05);
+      }
+
+      document.getElementById('audioToggleBtn').addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        document.getElementById('audioIcon').textContent = soundEnabled ? '🔊' : '🔇';
+      });
+
+      // =======================================================================
+      // 2. THREE.JS 3D HERO VISUAL CENTERPIECE (QUANTUM POLYHEDRON & PARTICLES)
+      // =======================================================================
+      const mount = document.getElementById('threeHeroMount');
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.PerspectiveCamera(45, mount.clientWidth / mount.clientHeight, 0.1, 100);
+      camera.position.z = 7.5;
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      mount.appendChild(renderer.domElement);
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0x4338ca, 1.2);
+      scene.add(ambientLight);
+
+      const light1 = new THREE.PointLight(0x38bdf8, 2.5, 20);
+      light1.position.set(5, 5, 5);
+      scene.add(light1);
+
+      const light2 = new THREE.PointLight(0xa855f7, 2.2, 20);
+      light2.position.set(-5, -5, 3);
+      scene.add(light2);
+
+      // Main Geometric Mesh Group
+      const mainGroup = new THREE.Group();
+      scene.add(mainGroup);
+
+      // Geometries to switch
+      const geoPoly = new THREE.IcosahedronGeometry(2.1, 1);
+      const geoTorus = new THREE.TorusGeometry(1.6, 0.6, 24, 48);
+      const geoKnot = new THREE.TorusKnotGeometry(1.3, 0.45, 64, 16);
+
+      const matSolid = new THREE.MeshPhysicalMaterial({
+        color: 0x312e81,
+        emissive: 0x1e1b4b,
+        roughness: 0.2,
+        metalness: 0.8,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1,
+        wireframe: false
+      });
+
+      let currentMesh = new THREE.Mesh(geoPoly, matSolid);
+      mainGroup.add(currentMesh);
+
+      // Wireframe overlay shell
+      const wireMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.35
+      });
+      const wireMesh = new THREE.Mesh(geoPoly, wireMat);
+      wireMesh.scale.set(1.03, 1.03, 1.03);
+      mainGroup.add(wireMesh);
+
+      // Floating Particle Cloud
+      const particleCount = 850;
+      const particleGeo = new THREE.BufferGeometry();
+      const particlePos = new Float32Array(particleCount * 3);
+      const particleVels = [];
+
+      for (let i = 0; i < particleCount; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        const r = 2.4 + Math.random() * 2.2;
+        particlePos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        particlePos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        particlePos[i * 3 + 2] = r * Math.cos(phi);
+        particleVels.push({ x: (Math.random() - 0.5) * 0.006, y: (Math.random() - 0.5) * 0.006, z: (Math.random() - 0.5) * 0.006 });
+      }
+      particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+      const particleMat = new THREE.PointsMaterial({ color: 0x818cf8, size: 0.045, transparent: true, opacity: 0.75 });
+      const particles = new THREE.Points(particleGeo, particleMat);
+      scene.add(particles);
+
+      // Mouse Drag & Kinetic Interactivity
+      let mouseX = 0, mouseY = 0, isHovered = false;
+      let rotSpeedX = 0.003, rotSpeedY = 0.006;
+      let shockwaveForce = 0;
+
+      mount.addEventListener('mousemove', (e) => {
+        const rect = mount.getBoundingClientRect();
+        mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouseY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+        isHovered = true;
+      });
+
+      mount.addEventListener('mouseleave', () => { isHovered = false; });
+
+      function triggerShockwave() {
+        shockwaveForce = 0.28;
+        playTone(380, 'sine', 0.35, 0.15);
+        showToast('⚡ 3D Quantum Shockwave Injected!');
+      }
+
+      document.getElementById('heroBurstBtn').addEventListener('click', triggerShockwave);
+
+      // Shape Switcher Buttons
+      document.querySelectorAll('.stage-shape-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.stage-shape-btn').forEach((b) => {
+            b.className = 'stage-shape-btn px-2.5 py-1 rounded-lg font-semibold text-slate-400 hover:text-white transition-all cursor-pointer';
+          });
+          btn.className = 'stage-shape-btn px-2.5 py-1 rounded-lg font-semibold bg-sky-500 text-slate-950 transition-all cursor-pointer';
+
+          const shape = btn.getAttribute('data-shape');
+          let newGeo = geoPoly;
+          if (shape === 'torus') newGeo = geoTorus;
+          if (shape === 'knot') newGeo = geoKnot;
+
+          currentMesh.geometry = newGeo;
+          wireMesh.geometry = newGeo;
+          playTone(460, 'triangle', 0.12, 0.06);
+        });
+      });
+
+      // Wireframe toggle
+      const toggleWireBtn = document.getElementById('toggleWireBtn');
+      let isWire = false;
+      toggleWireBtn.addEventListener('click', () => {
+        isWire = !isWire;
+        matSolid.wireframe = isWire;
+        toggleWireBtn.textContent = isWire ? 'X-Ray: ON' : 'X-Ray: OFF';
+        toggleWireBtn.classList.toggle('text-sky-400', isWire);
+        playTone(520, 'sine', 0.08, 0.05);
+      });
+
+      // Animation Loop
+      let clock = 0;
+      function animate() {
+        requestAnimationFrame(animate);
+        clock += 0.016;
+
+        if (isHovered) {
+          mainGroup.rotation.y += (mouseX * 1.5 - mainGroup.rotation.y) * 0.05;
+          mainGroup.rotation.x += (mouseY * 1.5 - mainGroup.rotation.x) * 0.05;
+        } else {
+          mainGroup.rotation.y += rotSpeedY;
+          mainGroup.rotation.x += rotSpeedX;
+        }
+
+        particles.rotation.y -= 0.0015;
+
+        // Shockwave decay
+        if (shockwaveForce > 0.001) {
+          mainGroup.scale.setScalar(1 + shockwaveForce * 0.8);
+          shockwaveForce *= 0.92;
+        } else {
+          mainGroup.scale.setScalar(1 + Math.sin(clock * 2) * 0.03);
+        }
+
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = mount.clientWidth / mount.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(mount.clientWidth, mount.clientHeight);
+      });
+
+      // =======================================================================
+      // 3. SPOTLIGHT BENTO CURSOR TRACKING
+      // =======================================================================
+      document.querySelectorAll('.bento-spotlight').forEach((card) => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+          card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+        });
+      });
+
+      // =======================================================================
+      // 4. LIVE BENCHMARK REPLAY ANIMATION
+      // =======================================================================
+      const bPrism = document.getElementById('benchBarPrism');
+      const bTrad = document.getElementById('benchBarTrad');
+      const bCloud = document.getElementById('benchBarCloud');
+      const rerunBenchBtn = document.getElementById('rerunBenchBtn');
+
+      function replayBenchmark() {
+        bPrism.style.width = '0%';
+        bTrad.style.width = '0%';
+        bCloud.style.width = '0%';
+        playTone(320, 'sine', 0.12, 0.07);
+        setTimeout(() => {
+          bPrism.style.width = '8%';
+          bTrad.style.width = '64%';
+          bCloud.style.width = '94%';
+          playTone(640, 'triangle', 0.2, 0.08);
+        }, 80);
+      }
+      rerunBenchBtn.addEventListener('click', replayBenchmark);
+
+      // =======================================================================
+      // 5. REGION NODE PING ROTATION
+      // =======================================================================
+      const meshNodes = document.querySelectorAll('#meshNodesContainer .mesh-node');
+      let nodeIdx = 0;
+      setInterval(() => {
+        meshNodes.forEach((n) => {
+          n.className = 'mesh-node p-2.5 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between';
+        });
+        nodeIdx = (nodeIdx + 1) % meshNodes.length;
+        meshNodes[nodeIdx].className = 'mesh-node p-2.5 rounded-xl bg-sky-500/10 border border-sky-400/60 shadow-lg shadow-sky-500/20 flex items-center justify-between';
+      }, 1500);
+
+      // =======================================================================
+      // 6. MULTI-LANGUAGE CODE SDK TABS
+      // =======================================================================
+      const codeSnippets = {
+        ts: `<span class="text-purple-400">import</span> { PrismWorld } <span class="text-purple-400">from</span> <span class="text-emerald-300">'@prism-ai/engine'</span>;\n\n<span class="text-purple-400">const</span> world = <span class="text-purple-400">await</span> PrismWorld.<span class="text-sky-400">connect</span>({\n  apiKey: process.env.PRISM_KEY,\n  substepFps: <span class="text-amber-400">120</span>,\n  precision: <span class="text-emerald-300">'fp8'</span>\n});\n\n<span class="text-purple-400">const</span> robot = world.<span class="text-sky-400">spawnKinematicActor</span>(<span class="text-emerald-300">'urdf://arm-v3'</span>);\nrobot.<span class="text-sky-400">onCollide</span>((event) =&gt; console.log(<span class="text-emerald-300">'Impact:'</span>, event.force));`,
+        py: `<span class="text-purple-400">import</span> prism_ai\n\nworld = prism_ai.<span class="text-sky-400">World</span>(\n    api_key=<span class="text-emerald-300">"pr_live_4a9..."</span>,\n    solver_hz=<span class="text-amber-400">120</span>,\n    quantization=<span class="text-emerald-300">"fp8"</span>\n)\n\nrobot = world.<span class="text-sky-400">load_mesh</span>(<span class="text-emerald-300">"robot_assembly.glb"</span>)\n<span class="text-purple-400">for</span> step <span class="text-purple-400">in</span> world.<span class="text-sky-400">stream_rollouts</span>(steps=<span class="text-amber-400">500</span>):\n    <span class="text-purple-400">print</span>(step.state_vector)`,
+        rust: `<span class="text-purple-400">use</span> prism_world::{Engine, Config, Precision};\n\n<span class="text-purple-400">#[tokio::main]</span>\n<span class="text-purple-400">async fn</span> <span class="text-sky-400">main</span>() -&gt; Result&lt;(), Error&gt; {\n    <span class="text-purple-400">let</span> engine = Engine::<span class="text-sky-400">init</span>(Config {\n        fps: <span class="text-amber-400">120</span>,\n        precision: Precision::Fp8,\n    }).<span class="text-purple-400">await</span>?;\n    engine.<span class="text-sky-400">simulate_batch</span>(<span class="text-amber-400">15000</span>).<span class="text-purple-400">await</span>\n}`
+      };
+
+      const codeBox = document.getElementById('codeBox');
+      document.querySelectorAll('.sdk-tab-btn').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.sdk-tab-btn').forEach((t) => {
+            t.className = 'sdk-tab-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white cursor-pointer';
+          });
+          tab.className = 'sdk-tab-btn px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-400/40 cursor-pointer';
+          const lang = tab.getAttribute('data-lang');
+          codeBox.innerHTML = codeSnippets[lang];
+          playTone(400, 'sine', 0.08, 0.05);
+        });
+      });
+
+      document.getElementById('copySnippetBtn').addEventListener('click', () => {
+        if (navigator.clipboard) navigator.clipboard.writeText(codeBox.innerText).catch(() => {});
+        showToast('📋 Code snippet copied to clipboard');
+        playTone(550, 'triangle', 0.12, 0.06);
+      });
+
+      // =======================================================================
+      // 7. NEURAL ROLLOUTS LIVE STREAM TERMINAL
+      // =======================================================================
+      const terminalStreamBox = document.getElementById('terminalStreamBox');
+      const streamTokens = [
+        '[STEP 1042] Rollout batch initiated across 64 GPUs',
+        '\n[COLLISION] Mesh #042 -> Surface #019 force=4.2kN (CONSERVED)',
+        '\n[PREDICTION] Trajectory loss: 0.0014 | dt=0.0083s',
+        '\n[STATE SYNC] Raft verified 15,000 states in 3.1ms'
+      ];
+      let termLine = 0;
+      function stepTerminal() {
+        if (termLine === 0) terminalStreamBox.textContent = '';
+        if (termLine < streamTokens.length) {
+          terminalStreamBox.textContent += streamTokens[termLine];
+          termLine++;
+        } else {
+          termLine = 0;
+        }
+      }
+      setInterval(stepTerminal, 1400);
+
+      // =======================================================================
+      // 8. INTERACTIVE SIMULATION LAB CALCULATOR
+      // =======================================================================
+      const actorsRange = document.getElementById('actorsRange');
+      const stepRateRange = document.getElementById('stepRateRange');
+      const actorsDisplay = document.getElementById('actorsDisplay');
+      const stepRateDisplay = document.getElementById('stepRateDisplay');
+      const simLatencyVal = document.getElementById('simLatencyVal');
+      const simGpuVal = document.getElementById('simGpuVal');
+      const simSavingsVal = document.getElementById('simSavingsVal');
+      let currentQuantScale = 1.0;
+
+      function updateSimCalculator() {
+        const actors = parseInt(actorsRange.value, 10);
+        const hz = parseInt(stepRateRange.value, 10);
+
+        actorsDisplay.textContent = actors.toLocaleString() + ' objects';
+        stepRateDisplay.textContent = hz + ' Hz';
+
+        const lat = ((1000 / hz) * 0.85 * currentQuantScale * (0.8 + (actors / 100000) * 0.35)).toFixed(1);
+        const gpus = Math.max(4, Math.round((actors / 2400) * (hz / 60) * currentQuantScale));
+        const savings = Math.round((actors * 1.6 * (hz / 60)) + (gpus * 120));
+
+        simLatencyVal.textContent = lat + ' ms';
+        simGpuVal.textContent = gpus + ' Enclaves';
+        simSavingsVal.textContent = '$' + savings.toLocaleString() + ' / mo';
+      }
+
+      actorsRange.addEventListener('input', updateSimCalculator);
+      stepRateRange.addEventListener('input', updateSimCalculator);
+
+      document.querySelectorAll('.precision-pill').forEach((pill) => {
+        pill.addEventListener('click', () => {
+          document.querySelectorAll('.precision-pill').forEach((p) => {
+            p.className = 'precision-pill p-2 rounded-xl text-xs font-mono-code font-semibold bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer';
+          });
+          pill.className = 'precision-pill p-2 rounded-xl text-xs font-mono-code font-semibold bg-sky-500/20 border border-sky-400/40 text-sky-300 transition-all cursor-pointer';
+          const q = pill.getAttribute('data-quant');
+          currentQuantScale = q === 'fp16' ? 1.4 : q === 'fp8' ? 1.0 : 0.7;
+          updateSimCalculator();
+          playTone(450, 'sine', 0.1, 0.05);
+        });
+      });
+
+      // =======================================================================
+      // 9. PRICING BILLING COMMITMENT SWITCH
+      // =======================================================================
+      const billingSwitch = document.getElementById('billingSwitch');
+      const billingKnob = document.getElementById('billingKnob');
+      const priceProAmount = document.getElementById('priceProAmount');
+      let isAnnual = true;
+
+      billingSwitch.addEventListener('click', () => {
+        isAnnual = !isAnnual;
+        billingKnob.classList.toggle('translate-x-6', isAnnual);
+        priceProAmount.textContent = isAnnual ? '$179' : '$229';
+        playTone(isAnnual ? 520 : 420, 'sine', 0.12, 0.06);
+      });
+
+      // =======================================================================
+      // 10. CLI COPY BUTTON & TOAST NOTIFICATION
+      // =======================================================================
+      const toastBox = document.getElementById('toastBox');
+      let toastTimer = null;
+
+      function showToast(msg) {
+        toastBox.textContent = msg;
+        toastBox.classList.remove('opacity-0', 'translate-y-24');
+        toastBox.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toastBox.classList.remove('opacity-100', 'translate-y-0');
+          toastBox.classList.add('opacity-0', 'translate-y-24');
+        }, 2500);
+      }
+
+      document.getElementById('copyCliBtn').addEventListener('click', () => {
+        const cmd = 'npm i @prism-ai/world-engine';
+        if (navigator.clipboard) navigator.clipboard.writeText(cmd).catch(() => {});
+        showToast('📋 Copied: ' + cmd);
+        playTone(480, 'triangle', 0.15, 0.07);
+      });
+
+      // =======================================================================
+      // 11. COMMAND PALETTE (⌘K) MODAL
+      // =======================================================================
+      const cmdModalOverlay = document.getElementById('cmdModalOverlay');
+      const cmdSearchInput = document.getElementById('cmdSearchInput');
+
+      function openCmd() {
+        cmdModalOverlay.classList.remove('hidden');
+        cmdModalOverlay.classList.add('flex');
+        cmdSearchInput.value = '';
+        filterCmd('');
+        setTimeout(() => cmdSearchInput.focus(), 60);
+        playTone(500, 'sine', 0.12, 0.06);
+      }
+
+      function closeCmd() {
+        cmdModalOverlay.classList.remove('flex');
+        cmdModalOverlay.classList.add('hidden');
+      }
+
+      document.getElementById('openCmdBtn').addEventListener('click', openCmd);
+      document.getElementById('bottomCmdBtn').addEventListener('click', openCmd);
+
+      window.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          cmdModalOverlay.classList.contains('flex') ? closeCmd() : openCmd();
+        } else if (e.key === 'Escape') {
+          closeCmd();
+        }
+      });
+
+      cmdModalOverlay.addEventListener('click', (e) => {
+        if (e.target === cmdModalOverlay) closeCmd();
+      });
+
+      function filterCmd(q) {
+        const query = q.toLowerCase();
+        document.querySelectorAll('.cmd-item').forEach((item) => {
+          const match = item.textContent.toLowerCase().includes(query);
+          item.style.display = match ? 'flex' : 'none';
+        });
+      }
+
+      cmdSearchInput.addEventListener('input', (e) => filterCmd(e.target.value));
+
+      document.querySelectorAll('.cmd-item').forEach((item) => {
+        item.addEventListener('click', () => {
+          const act = item.getAttribute('data-act');
+          closeCmd();
+          if (act === 'shockwave') {
+            triggerShockwave();
+          } else if (act === 'shape-torus') {
+            document.querySelector('.stage-shape-btn[data-shape="torus"]').click();
+            document.getElementById('hero-3d').scrollIntoView({ behavior: 'smooth' });
+          } else if (act === 'shape-knot') {
+            document.querySelector('.stage-shape-btn[data-shape="knot"]').click();
+            document.getElementById('hero-3d').scrollIntoView({ behavior: 'smooth' });
+          } else if (act === 'copy-cli') {
+            document.getElementById('copyCliBtn').click();
+          } else if (act === 'jump-lab') {
+            document.getElementById('playground').scrollIntoView({ behavior: 'smooth' });
+          } else if (act === 'jump-pricing') {
+            document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+    };
+  </script>
+</body>
+</html>

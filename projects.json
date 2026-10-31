@@ -1,0 +1,69 @@
+[
+  {
+    "file": "aetheria_geneva_1884_maison_de_haute_horlogerie_biaxial_tourbillon.html",
+    "slug": "aetheria",
+    "title": "AETHERIA GENEVA 1884",
+    "tagline": "Maison de Haute Horlogerie & Biaxial Tourbillon",
+    "description": "Interactive 3D exploded Calibre AET-09 mechanical assembly and luxury horology showcase suspended in real-time viewport.",
+    "category": "3D & WebGL",
+    "tags": ["Three.js", "WebGL", "Kinetic Horology", "Luxury"],
+    "accentColor": "#d4af37",
+    "featured": true
+  },
+  {
+    "file": "aetheris_startup_landing_page.html",
+    "slug": "aetheris",
+    "title": "Aetheris Edge",
+    "tagline": "Sub-Millisecond Neural Edge Infrastructure",
+    "description": "Ultra-low latency global inference platform landing page with real-time cluster telemetry and latency simulation.",
+    "category": "AI Infrastructure",
+    "tags": ["Dark Mode", "Developer Tooling", "Real-time Telemetry", "Glassmorphism"],
+    "accentColor": "#38bdf8",
+    "featured": true
+  },
+  {
+    "file": "arkhe_programmable_matter_kinetic_metamaterial_surfaces.html",
+    "slug": "arkhe",
+    "title": "ARKHE™ Surfaces",
+    "tagline": "Programmable Matter & Kinetic Metamaterial Surfaces",
+    "description": "Micro-actuated solid-state metamaterial surfaces featuring tactile origami physics and kinetic displacement controls.",
+    "category": "Spatial Hardware",
+    "tags": ["Metamaterials", "Kinetic Physics", "Editorial Design", "Interactive"],
+    "accentColor": "#ff4f18",
+    "featured": true
+  },
+  {
+    "file": "prism_ai_generative_3d_world_simulation_physical_intelligence.html",
+    "slug": "prism",
+    "title": "Prism AI",
+    "tagline": "Generative 3D World Simulation & Physical Intelligence",
+    "description": "Spatial foundation models converting point clouds and CAD meshes into real-time neural physics engines and interactive 3D simulation.",
+    "category": "3D & WebGL",
+    "tags": ["Spatial AI", "Neural Simulation", "Three.js", "Robotics"],
+    "accentColor": "#6366f1",
+    "featured": true
+  },
+  {
+    "file": "solstice_wild_harvested_adaptogenic_botanicals_night_bloom_elixir.html",
+    "slug": "solstice",
+    "title": "SOLSTICE™",
+    "tagline": "Wild-Harvested Adaptogenic Botanicals & Night-Bloom Elixir",
+    "description": "Sensory-driven e-commerce experience for wild-foraged botanicals with fluid particle interactions and bespoke ambient aesthetics.",
+    "category": "Interactive UI",
+    "tags": ["E-Commerce", "Sensory UI", "Interactive Particles", "Botanicals"],
+    "accentColor": "#f4a261",
+    "featured": true
+  },
+  {
+    "file": "synthoma_autonomous_morphogenetic_compute_neural_fluid_foundry.html",
+    "slug": "synthoma",
+    "title": "SYNTHOMA™",
+    "tagline": "Autonomous Morphogenetic Compute & Neural Fluid Foundry",
+    "description": "Real-time ferrofluid tensor particle simulation and morphing compute substrate that responds directly to pointer physics.",
+    "category": "3D & WebGL",
+    "tags": ["Ferrofluid WebGL", "Interactive Canvas", "Morphogenetic", "Cyberpunk"],
+    "accentColor": "#c084fc",
+    "featured": true
+  }
+]
+

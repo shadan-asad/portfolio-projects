@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="midnight">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOLSTICE™ — Wild-Harvested Adaptogenic Botanicals &amp; Night-Bloom Elixir</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    :root[data-theme="midnight"] {
+      --bg-primary: #090608;
+      --bg-secondary: #130c10;
+      --bg-hud: rgba(20, 12, 16, 0.76);
+      --bg-card: rgba(25, 16, 21, 0.78);
+      --text-primary: #fdf8f5;
+      --text-secondary: #cbbab2;
+      --text-muted: #8a776f;
+      --border-hairline: rgba(244, 162, 97, 0.16);
+      --border-strong: rgba(244, 162, 97, 0.45);
+      --accent-primary: #f4a261;
+      --accent-rose: #fb7185;
+      --accent-sage: #52b788;
+      --pill-bg: rgba(255, 245, 238, 0.06);
+    }
+
+    :root[data-theme="terracotta"] {
+      --bg-primary: #faf4ed;
+      --bg-secondary: #f2e8dc;
+      --bg-hud: rgba(252, 247, 240, 0.84);
+      --bg-card: rgba(255, 251, 246, 0.88);
+      --text-primary: #1f1410;
+      --text-secondary: #5c473e;
+      --text-muted: #8c7367;
+      --border-hairline: rgba(31, 20, 16, 0.12);
+      --border-strong: rgba(217, 107, 67, 0.45);
+      --accent-primary: #d96b43;
+      --accent-rose: #e11d48;
+      --accent-sage: #2d6a4f;
+      --pill-bg: rgba(31, 20, 16, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .font-serif-display {
+      font-family: 'Fraunces', Georgia, serif;
+    }
+
+    .font-mono-label {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .botanical-glass {
+      background: var(--bg-hud);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid var(--border-hairline);
+      box-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .botanical-glass:hover {
+      border-color: var(--border-strong);
+    }
+
+    .pill-btn {
+      background: var(--pill-bg);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .pill-btn:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    .pill-btn-active {
+      background: linear-gradient(135deg, #fb7185, #f4a261) !important;
+      color: #190b0f !important;
+      border-color: #fda4af !important;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(251, 113, 133, 0.38);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(244, 162, 97, 0.26);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fb7185;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 12px rgba(251, 113, 133, 0.85);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Full-Viewport 3D Hero Stage */
+    #elixirHeroStage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    #elixirHeroStage canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      outline: none;
+    }
+
+    .botanical-vignette {
+      background: radial-gradient(circle at 58% 48%, transparent 22%, rgba(9, 6, 8, 0.48) 72%, rgba(9, 6, 8, 0.9) 100%);
+    }
+
+    :root[data-theme="terracotta"] .botanical-vignette {
+      background: radial-gradient(circle at 58% 48%, transparent 25%, rgba(250, 244, 237, 0.42) 75%, rgba(250, 244, 237, 0.9) 100%);
+    }
+
+    /* Showcase Mode hides text overlays for pure full-screen 3D Twitter screen capture */
+    body.showcase-clean .hero-copy-layer {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+      pointer-events: none;
+    }
+
+    .hero-copy-layer {
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes marqueeSlow {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .botanical-marquee {
+      display: flex;
+      width: max-content;
+      animation: marqueeSlow 32s linear infinite;
+    }
+  </style>
+</head>
+<body class="selection:bg-rose-400 selection:text-stone-950">
+
+  <!-- ===================================================================== -->
+  <!-- FLOATING CONSUMER D2C NAVBAR (OVERLAYS FULL-BLEED 3D HERO)            -->
+  <!-- ===================================================================== -->
+  <header class="fixed top-3 left-0 right-0 z-50 px-4 sm:px-8 max-w-[1440px] mx-auto pointer-events-none">
+    <nav class="botanical-glass rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between pointer-events-auto">
+      <!-- Brand Identity -->
+      <a href="#hero-elixir" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-rose-400 via-amber-300 to-emerald-300 flex items-center justify-center text-stone-950 font-serif-display font-bold text-base shadow-md shadow-rose-400/25 group-hover:rotate-45 transition-transform duration-500">
+          ✿
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-serif-display font-bold text-lg sm:text-xl tracking-tight">SOLSTICE</span>
+            <span class="font-mono-label text-[9px] uppercase px-2 py-0.5 rounded-full bg-rose-400/15 text-rose-300 border border-rose-400/30">0.0% ABV</span>
+          </div>
+          <span class="font-mono-label text-[9px] uppercase tracking-widest text-[var(--text-muted)] hidden sm:block">Kyoto &middot; Oaxaca &middot; Grasse Botanicals</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="hidden xl:flex items-center gap-7 text-xs font-medium text-[var(--text-secondary)]">
+        <a href="#hero-elixir" class="hover:text-rose-400 transition-colors">The 3D Decanter</a>
+        <a href="#mixology-bar" class="hover:text-rose-400 transition-colors">Interactive Mixology</a>
+        <a href="#sensory-notes" class="hover:text-rose-400 transition-colors">Tasting Notes</a>
+        <a href="#ritual-box" class="hover:text-rose-400 transition-colors">Build Tasting Flight</a>
+      </div>
+
+      <!-- Right Utility & Cart Drawer Trigger -->
+      <div class="flex items-center gap-2">
+        <button id="showcaseToggleBtn" class="pill-btn px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5" title="Hide text overlays to record clean full-screen 3D visuals for Twitter/X">
+          <span>🎥</span>
+          <span id="showcaseLabel" class="hidden sm:inline">Showcase</span>
+        </button>
+        <button id="themeSwitchBtn" class="pill-btn px-2.5 py-1.5 rounded-full text-xs" title="Switch Midnight Cellar / Sunlit Terracotta Theme">
+          <span id="themeIcon">☀️</span>
+        </button>
+        <button id="soundToggleBtn" class="pill-btn p-2 rounded-full text-xs" title="Toggle Effervescent Pour &amp; Crystal Glass Clink Audio">
+          <span id="soundIcon">🔊</span>
+        </button>
+        <button id="openBagBtn" class="px-4 py-2 rounded-full bg-gradient-to-r from-rose-400 to-amber-300 text-stone-950 font-bold text-xs tracking-wide shadow-lg shadow-rose-500/20 hover:brightness-105 transition-all flex items-center gap-1.5 cursor-pointer">
+          <span>🛍️ Bag</span>
+          <span id="navBagCount" class="px-1.5 py-0.2 rounded-full bg-stone-950/20 font-mono-label text-[10px]">1</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- 01 // FULL-VIEWPORT (100vw × 100vh) INTERACTIVE 3D CONSUMER HERO      -->
+  <!-- ===================================================================== -->
+  <section id="hero-elixir" class="relative w-screen min-h-screen h-screen overflow-hidden flex flex-col justify-between pt-20 pb-5 px-4 sm:px-8 select-none">
+
+    <!-- FULL-HERO 3D BOTANICAL DECANTER, EFFERVESCENT BUBBLES & FLOATING CITRUS STAGE -->
+    <div id="elixirHeroStage" class="cursor-grab active:cursor-grabbing" title="Move cursor to swirl botanicals and bubbles • Click anywhere for an effervescent fizz burst • Drag to rotate bottle"></div>
+
+    <!-- Subtle Radial Vignette -->
+    <div class="botanical-vignette absolute inset-0 z-[2] pointer-events-none"></div>
+
+    <!-- TOP SMALL-BATCH HARVEST STRIP -->
+    <div class="relative z-10 max-w-[1440px] w-full mx-auto flex flex-wrap items-center justify-between gap-2 pt-2 pointer-events-none text-[11px] font-mono-label">
+      <div class="botanical-glass px-3.5 py-1.5 rounded-full flex items-center gap-2.5 pointer-events-auto">
+        <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+        <span class="text-[var(--text-secondary)]">AUTUMN HARVEST N° 14: <strong id="hudCultivarName" class="text-rose-300">CRIMSON HIBISCUS &amp; REISHI</strong></span>
+      </div>
+
+      <div class="botanical-glass px-3.5 py-1.5 rounded-full hidden md:flex items-center gap-4 pointer-events-auto">
+        <span>NOOTROPIC DOSE: <strong id="hudAdaptogenMg" class="text-amber-300">1,250mg L-Theanine + Lion's Mane</strong></span>
+        <span class="text-[var(--text-muted)]">|</span>
+        <span>SUGAR: <strong class="text-emerald-400">0g Added</strong></span>
+      </div>
+    </div>
+
+    <!-- CENTER OVERLAID CONSUMER EDITORIAL STORY -->
+    <div class="hero-copy-layer relative z-10 max-w-[1440px] w-full mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-center pointer-events-none">
+      <div class="lg:col-span-6 space-y-5 text-left">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full botanical-glass text-xs font-medium pointer-events-auto">
+          <span class="px-2 py-0.5 rounded-full bg-rose-400/20 text-rose-300 font-mono-label text-[10px] font-semibold">★ 4.98 (2,400+ REVIEWS)</span>
+          <span class="text-[var(--text-secondary)]">Functional Social Apéritif</span>
+        </div>
+
+        <h1 class="font-serif-display text-5xl sm:text-6xl xl:text-[4.5rem] font-semibold tracking-tight leading-[0.98]">
+          All the <span class="italic font-light text-rose-400">euphoria</span> of the midnight pour. Zero hangover.
+        </h1>
+
+        <p class="text-sm sm:text-base lg:text-lg text-[var(--text-secondary)] max-w-xl leading-relaxed">
+          Distilled from wild-foraged Damask rose, sun-cured Yuzu peel, and organic fruiting-body adaptogens. Swirl your cursor across this viewport to stir the live <strong>3D botanical suspension</strong> or switch cultivars below.
+        </p>
+
+        <!-- Primary Interactive Hero CTAs -->
+        <div class="flex flex-wrap items-center gap-3 pt-1 pointer-events-auto">
+          <button id="heroQuickAddBtn" class="px-6 py-3.5 rounded-full bg-gradient-to-r from-rose-400 via-amber-300 to-orange-300 text-stone-950 font-bold text-xs sm:text-sm tracking-wide shadow-xl shadow-rose-500/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+            <span>✨ Add <span id="ctaFlavorTitle">Crimson Hibiscus</span> — $44</span>
+          </button>
+
+          <button id="popCorkBtn" class="pill-btn botanical-glass px-4 py-3.5 rounded-full text-xs font-semibold flex items-center gap-2">
+            <span>🍾 Pop Cork &amp; Fizz Burst</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-white/10 font-mono-label text-[10px]">SPACE</kbd>
+          </button>
+
+          <button id="deconstructBotanicalsBtn" class="pill-btn botanical-glass px-4 py-3.5 rounded-full text-xs font-semibold flex items-center gap-2">
+            <span>🌸 Explode Botanicals: <strong id="explodeStateText" class="text-rose-300">OFF</strong></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Floating Sensory Tasting Card (Desktop) -->
+      <div class="lg:col-span-6 hidden lg:flex justify-end">
+        <div class="botanical-glass rounded-3xl p-5 w-80 space-y-4 pointer-events-auto">
+          <div class="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3">
+            <span class="font-mono-label text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">Sommelier Tasting Profile</span>
+            <span id="cardAbvBadge" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono-label text-[10px] font-bold">750 ML BOTTLE</span>
+          </div>
+
+          <div class="space-y-2.5 text-xs">
+            <div>
+              <div class="flex justify-between text-[11px] mb-1">
+                <span class="text-[var(--text-secondary)]">NOSE / AROMA</span>
+                <strong id="tastingNose" class="text-rose-300">Crushed Tart Cherry &amp; Smoke</strong>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mb-1">
+                <span class="text-[var(--text-secondary)]">PALATE FINISH</span>
+                <strong id="tastingPalate" class="text-amber-300">Velvet Tannin &amp; Pink Pepper</strong>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mb-1">
+                <span class="text-[var(--text-secondary)]">FELT MOOD EFFECT</span>
+                <strong id="tastingMood" class="text-emerald-300">Warm Social Unwind (15 mins)</strong>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-[var(--text-muted)] leading-relaxed pt-1 border-t border-[var(--border-hairline)]">
+            💡 <strong>Tip:</strong> Click any of the 4 expressions in the dock below to morph the 3D bottle, liquid refraction, and orbiting botanicals in real time.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM FULL-HERO INTERACTIVE EXPRESSION & EFFERVESCENCE DOCK -->
+    <div class="relative z-10 max-w-[1440px] w-full mx-auto pointer-events-auto">
+      <div class="botanical-glass rounded-3xl p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+        <!-- 4 Botanical Expression Switchers -->
+        <div class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button data-flavor="hibiscus" class="flavor-mode-btn pill-btn pill-btn-active py-2.5 px-3 rounded-2xl text-xs text-center flex flex-col items-center gap-0.5">
+            <span class="font-bold">🌺 01. Ruby Bloom</span>
+            <span class="text-[10px] opacity-80">Hibiscus &amp; Reishi</span>
+          </button>
+          <button data-flavor="yuzu" class="flavor-mode-btn pill-btn py-2.5 px-3 rounded-2xl text-xs text-center flex flex-col items-center gap-0.5">
+            <span class="font-bold">🍋 02. Golden Yuzu</span>
+            <span class="text-[10px] opacity-80">Saffron &amp; Cordyceps</span>
+          </button>
+          <button data-flavor="cypress" class="flavor-mode-btn pill-btn py-2.5 px-3 rounded-2xl text-xs text-center flex flex-col items-center gap-0.5">
+            <span class="font-bold">🌿 03. Kyoto Moss</span>
+            <span class="text-[10px] opacity-80">Hinoki &amp; Matcha</span>
+          </button>
+          <button data-flavor="fig" class="flavor-mode-btn pill-btn py-2.5 px-3 rounded-2xl text-xs text-center flex flex-col items-center gap-0.5">
+            <span class="font-bold">🫐 04. Velvet Fig</span>
+            <span class="text-[10px] opacity-80">Black Fig &amp; Ashwagandha</span>
+          </button>
+        </div>
+
+        <!-- Live Effervescence, Botanical Swirl & Chill Frost Sliders -->
+        <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 gap-3 px-1 text-xs font-mono-label">
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-[var(--text-secondary)]">EFFERVESCENCE</span>
+              <span id="fizzReadout" class="text-rose-300 font-bold">85% Fizz</span>
+            </div>
+            <input id="fizzSlider" type="range" min="15" max="180" step="5" value="85" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-[var(--text-secondary)]">ORBIT SWIRL</span>
+              <span id="swirlReadout" class="text-amber-300 font-bold">1.4x Flow</span>
+            </div>
+            <input id="swirlSlider" type="range" min="0.2" max="3.5" step="0.1" value="1.4" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-[var(--text-secondary)]">BOTTLE FROST</span>
+              <span id="frostReadout" class="text-emerald-300 font-bold">4°C Chilled</span>
+            </div>
+            <input id="frostSlider" type="range" min="0" max="100" step="5" value="35" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- PRESS & ACCOLADES MARQUEE                                             -->
+  <!-- ===================================================================== -->
+  <div class="border-y border-[var(--border-hairline)] bg-[var(--bg-secondary)] py-4 overflow-hidden">
+    <div class="botanical-marquee flex items-center gap-12 font-serif-display italic text-sm text-[var(--text-secondary)]">
+      <span>“The most seductively complex non-alcoholic apéritif we have ever tasted.” — <strong>VOGUE LIVING</strong></span>
+      <span>✦</span>
+      <span>“Looks like a jewel on the bar cart, hits like a velvet Manhattan.” — <strong>BON APPÉTIT</strong></span>
+      <span>✦</span>
+      <span>“Michelin sommeliers are pouring Solstice by the magnum.” — <strong>MONOCLE MAGAZINE</strong></span>
+      <span>✦</span>
+      <span>“The most seductively complex non-alcoholic apéritif we have ever tasted.” — <strong>VOGUE LIVING</strong></span>
+      <span>✦</span>
+      <span>“Looks like a jewel on the bar cart, hits like a velvet Manhattan.” — <strong>BON APPÉTIT</strong></span>
+      <span>✦</span>
+      <span>“Michelin sommeliers are pouring Solstice by the magnum.” — <strong>MONOCLE MAGAZINE</strong></span>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- BELOW-THE-FOLD CONSUMER EXPERIENCE SECTIONS                           -->
+  <!-- ===================================================================== -->
+  <main class="max-w-[1380px] mx-auto px-4 sm:px-8 py-24 space-y-28">
+
+    <!-- 02 // INTERACTIVE COCKTAIL & SPRITZ MIXOLOGY SIMULATOR -->
+    <section id="mixology-bar" class="space-y-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--border-hairline)] pb-6">
+        <div class="space-y-2 max-w-2xl">
+          <div class="text-xs font-mono-label uppercase tracking-widest text-rose-400 font-semibold">
+            02 // Interactive Sommelier Spritz Bar
+          </div>
+          <h2 class="font-serif-display text-3xl sm:text-5xl font-semibold tracking-tight">
+            Craft your evening pour &amp; mood profile.
+          </h2>
+        </div>
+        <p class="text-sm text-[var(--text-secondary)] max-w-md">
+          Adjust the Solstice botanical base, sparkling tonic ratio, and artisanal ice below to watch the live crystal coupe pour and calculate your exact adaptogenic glow.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <!-- Interactive 2D Crystal Glass Pour & Bubbles Canvas -->
+        <div class="lg:col-span-7 rounded-3xl bg-[#0d080b] border border-[var(--border-strong)] overflow-hidden flex flex-col justify-between shadow-2xl">
+          <div class="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-2 font-mono-label text-xs text-stone-300 bg-black/40">
+            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-400"></span> LIVE CRYSTAL COUPE SIMULATOR</span>
+            <div class="flex items-center gap-4">
+              <span>CALORIES: <strong id="mixCalories" class="text-emerald-400">22 kcal</strong></span>
+              <span>MOOD LIFT: <strong id="mixMoodScore" class="text-amber-300">96% Euphoria</strong></span>
+            </div>
+          </div>
+          <canvas id="mixologyCanvas" class="w-full h-[350px] block cursor-pointer" title="Click inside the glass to drop fresh botanical ice &amp; citrus"></canvas>
+        </div>
+
+        <!-- Mixology Recipe Controls -->
+        <div class="lg:col-span-5 botanical-glass rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6">
+          <div class="space-y-5">
+            <div class="flex items-center justify-between">
+              <h3 id="recipeTitleDisplay" class="font-serif-display text-2xl font-semibold">The Kyoto Sunset Spritz</h3>
+              <span class="px-2.5 py-1 rounded-full bg-rose-400/20 text-rose-300 font-mono-label text-[10px] font-bold">SIGNATURE SERVE</span>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-label">
+                <label for="pourBaseSlider">SOLSTICE ELIXIR POUR</label>
+                <span id="pourBaseVal" class="text-rose-300 font-bold">60 ml (Double)</span>
+              </div>
+              <input id="pourBaseSlider" type="range" min="30" max="90" step="5" value="60" />
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-label">
+                <label for="tonicTopSlider">SPARKLING HINOKI TONIC</label>
+                <span id="tonicTopVal" class="text-amber-300 font-bold">90 ml</span>
+              </div>
+              <input id="tonicTopSlider" type="range" min="30" max="150" step="10" value="90" />
+            </div>
+
+            <div class="space-y-2">
+              <span class="text-xs font-mono-label text-[var(--text-secondary)] block">GARNISH &amp; AROMATIC TWIST</span>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <button data-garnish="bloodorange" class="garnish-btn pill-btn pill-btn-active py-2 rounded-xl font-medium">🍊 Blood Orange</button>
+                <button data-garnish="rosemary" class="garnish-btn pill-btn py-2 rounded-xl font-medium">🌿 Smoked Herb</button>
+                <button data-garnish="ediblegold" class="garnish-btn pill-btn py-2 rounded-xl font-medium">✨ 24k Gold Leaf</button>
+              </div>
+            </div>
+
+            <button id="dropIceSplashBtn" class="pill-btn w-full py-3 rounded-xl text-xs font-bold">
+              🧊 Drop Hand-Carved Crystal Ice Sphere
+            </button>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] text-xs space-y-1">
+            <div class="font-mono-label text-[10px] text-[var(--text-muted)] uppercase">Bartender's Note</div>
+            <p id="bartenderNoteText" class="text-[var(--text-secondary)] leading-relaxed">
+              Pour 60ml Solstice over a single king cube, top with chilled tonic, and express a fresh blood orange peel across the rim.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 // SENSORY INGREDIENT PROVENANCE BENTO -->
+    <section id="sensory-notes" class="space-y-8">
+      <div class="space-y-2">
+        <div class="text-xs font-mono-label uppercase tracking-widest text-amber-400 font-semibold">
+          03 // Triple-Distilled Bio-Active Botanicals
+        </div>
+        <h2 class="font-serif-display text-3xl sm:text-5xl font-semibold tracking-tight">
+          Formulated by neuro-botanists &amp; Michelin sommeliers.
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="botanical-glass rounded-3xl p-7 space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-rose-400/15 border border-rose-400/30 flex items-center justify-center text-2xl">
+            🌺
+          </div>
+          <div class="font-mono-label text-[10px] uppercase tracking-wider text-rose-300">Oaxaca, Mexico &middot; 2,100m Altitude</div>
+          <h3 class="font-serif-display text-2xl font-semibold">Sun-Dried Crimson Hibiscus &amp; Damask Rose</h3>
+          <p class="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+            Cold-macerated for 72 hours in copper alembics to preserve natural anthocyanins and deliver a long, dry Pinot-Noir-like tannic structure on the finish.
+          </p>
+        </div>
+
+        <div class="botanical-glass rounded-3xl p-7 space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-2xl">
+            🍄
+          </div>
+          <div class="font-mono-label text-[10px] uppercase tracking-wider text-amber-300">Hokkaido, Japan &middot; Dual-Extracted</div>
+          <h3 class="font-serif-display text-2xl font-semibold">Organic Lion's Mane, Reishi &amp; L-Theanine</h3>
+          <p class="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+            Each 60ml pour delivers 1,250mg of bio-available nootropics that elevate alpha-wave calm and social warmth within 15 minutes—without drowsiness.
+          </p>
+        </div>
+
+        <div class="botanical-glass rounded-3xl p-7 space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-400/15 border border-emerald-400/30 flex items-center justify-center text-2xl">
+            🍋
+          </div>
+          <div class="font-mono-label text-[10px] uppercase tracking-wider text-emerald-300">Kochi Prefecture &middot; First-Press</div>
+          <h3 class="font-serif-display text-2xl font-semibold">Wild Mountain Yuzu &amp; Green Cardamom</h3>
+          <p class="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+            Distilled under vacuum at 28°C to capture volatile citrus terpenes that awaken the palate before giving way to warm Himalayan pink peppercorn.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 // INTERACTIVE TASTING FLIGHT BUNDLE BUILDER -->
+    <section id="ritual-box" class="botanical-glass rounded-3xl p-6 sm:p-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-7 space-y-5">
+          <div class="text-xs font-mono-label uppercase tracking-widest text-rose-400 font-semibold">
+            04 // Custom Collector's Tasting Box
+          </div>
+          <h2 class="font-serif-display text-3xl sm:text-4xl font-semibold tracking-tight">
+            Curate your 3-Bottle Evening Ritual Flight.
+          </h2>
+          <p class="text-xs sm:text-sm text-[var(--text-secondary)]">
+            Mix and match any 3 full-size 750ml glass decanters below to unlock <strong>15% bundle savings</strong> plus our complimentary hand-blown crystal stopper.
+          </p>
+
+          <!-- Bottle Counter Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div class="p-4 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] flex items-center justify-between">
+              <div>
+                <div class="font-bold text-sm">🌺 01. Ruby Bloom</div>
+                <div class="text-[11px] text-[var(--text-muted)]">Tart Cherry, Hibiscus &amp; Reishi</div>
+              </div>
+              <div class="flex items-center gap-2 font-mono-label">
+                <button data-bottle="hibiscus" data-delta="-1" class="bundle-qty-btn pill-btn w-7 h-7 rounded-full text-xs font-bold">-</button>
+                <span id="qty-hibiscus" class="w-4 text-center font-bold text-sm">1</span>
+                <button data-bottle="hibiscus" data-delta="1" class="bundle-qty-btn pill-btn w-7 h-7 rounded-full text-xs font-bold">+</button>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] flex items-center justify-between">
+              <div>
+                <div class="font-bold text-sm">🍋 02. Golden Yuzu</div>
+                <div class="text-[11px] text-[var(--text-muted)]">Yuzu Zest, Saffron &amp; Cordyceps</div>
+              </div>
+              <div class="flex items-center gap-2 font-mono-label">
+                <button data-bottle="yuzu" data-delta="-1" class="bundle-qty-btn pill-btn w-7 h-7 rounded-full text-xs font-bold">-</button>
+                <span id="qty-yuzu" class="w-4 text-center font-bold text-sm">1</span>
+                <button data-bottle="yuzu" data-delta="1" class="bundle-qty-btn pill-btn w-7 h-7 rounded-full text-xs font-bold">+</button>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] flex items-center justify-between">
+              <div>
+                <div class="font-bold text-sm">🌿 03. Kyoto Moss</div>
+                <div class="text-[11px] text-[var(--text-muted)]">Hinoki Cypress, Matcha &amp; Sage</div>
+              </div>
+              <div class="flex items-center gap-2 font-mono-label">
+                <button data-bottle="cypress" data-delta="-1" class="bundle-qty-btn pill-btn w-7 h-7 rounded-full text-xs font-bold">-</button>
+                <span id="qty-cypress" class="w-4 text-center font-bold text-sm">1</span>
+                <button data-bottle="cypress" data-delta="1" class="bundle-qty-btn pill-btn w-7 h-7 rounded-full text-xs font-bold">+</button>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] flex items-center justify-between">
+              <div>
+                <div class="font-bold text-sm">🫐 04. Velvet Fig</div>
+                <div class="text-[11px] text-[var(--text-muted)]">Black Mission Fig &amp; Ashwagandha</div>
+              </div>
+              <div class="flex items-center gap-2 font-mono-label">
+                <button data-bottle="fig" data-delta="-1" class="bundle-qty-btn pill-btn w-7 h-7 rounded-full text-xs font-bold">-</button>
+                <span id="qty-fig" class="w-4 text-center font-bold text-sm">0</span>
+                <button data-bottle="fig" data-delta="1" class="bundle-qty-btn pill-btn w-7 h-7 rounded-full text-xs font-bold">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 5 Cols: Checkout Summary Card -->
+        <div class="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-[#0d080b] text-stone-100 border border-rose-400/30 space-y-5">
+          <div class="flex items-center justify-between border-b border-white/10 pb-4">
+            <div>
+              <span class="font-mono-label text-[10px] uppercase text-rose-300">Your Custom Flight</span>
+              <h3 id="bundleStatusHeadline" class="font-serif-display text-2xl font-semibold mt-0.5">3 Bottles Selected (15% Off)</h3>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono-label text-[10px] font-bold">FREE EXPRESS SHIP</span>
+          </div>
+
+          <!-- Purchase Frequency Toggle -->
+          <div class="grid grid-cols-2 gap-2 font-mono-label text-xs">
+            <button data-sub="once" class="sub-mode-btn pill-btn py-2.5 rounded-xl">One-Time Purchase</button>
+            <button data-sub="monthly" class="sub-mode-btn pill-btn pill-btn-active py-2.5 rounded-xl">Monthly Ritual (-15%)</button>
+          </div>
+
+          <div class="flex items-baseline justify-between pt-2">
+            <span class="text-xs text-stone-400 font-mono-label">TOTAL FLIGHT PRICE</span>
+            <div class="flex items-baseline gap-2">
+              <span id="bundleStrikePrice" class="text-sm line-through text-stone-500 font-mono-label">$132</span>
+              <span id="bundleFinalPrice" class="text-3xl sm:text-4xl font-serif-display font-bold text-rose-300">$112</span>
+            </div>
+          </div>
+
+          <button id="checkoutFlightBtn" class="w-full py-4 rounded-full bg-gradient-to-r from-rose-400 via-amber-300 to-orange-300 text-stone-950 font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xl shadow-rose-500/25 hover:brightness-105 transition-all cursor-pointer">
+            Reserve Custom Flight &amp; Crystal Stopper &rarr;
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[var(--border-hairline)] py-10 px-4 sm:px-8 text-xs font-mono-label text-[var(--text-muted)]">
+    <div class="max-w-[1380px] mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2 text-[var(--text-primary)] font-bold">
+        <span class="w-5 h-5 rounded-full bg-rose-400 text-stone-950 flex items-center justify-center text-[10px]">✿</span>
+        <span>SOLSTICE BOTANICAL CELLARS INC. &copy; 2026 &middot; KYOTO / OAXACA / BROOKLYN</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#hero-elixir" class="hover:text-rose-400">Back to 3D Decanter &uarr;</a>
+        <a href="#mixology-bar" class="hover:text-rose-400">Mixology Bar</a>
+        <a href="#ritual-box" class="hover:text-rose-400">Tasting Flight</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toastBanner" class="fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-full botanical-glass border border-rose-400 font-mono-label text-xs font-semibold text-[var(--text-primary)] shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    Added to your tasting bag
+  </div>
+
+  <script>
+    window.onload = function () {
+      // =====================================================================
+      // 1. PROCEDURAL WEB AUDIO: CORK POP, CRYSTAL CLINK & FIZZ SYNTHESIZER
+      // =====================================================================
+      let audioCtx = null;
+      let soundOn = true;
+
+      function getAudioContext() {
+        if (!soundOn) return null;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+
+      // Crystal Coupe Glass Clink
+      function playCrystalClink(pitch = 1480) {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        [1, 2.42].forEach((mult, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(pitch * mult, now);
+          gain.gain.setValueAtTime(0.06 / (idx + 1), now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.48);
+        });
+      }
+
+      // Cork Pop + Effervescent Bubble Burst
+      function playCorkPop() {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(680, now + 0.09);
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.14);
+      }
+
+      document.getElementById('soundToggleBtn').addEventListener('click', () => {
+        soundOn = !soundOn;
+        document.getElementById('soundIcon').textContent = soundOn ? '🔊' : '🔇';
+      });
+
+      const toastBanner = document.getElementById('toastBanner');
+      let toastTimer = null;
+      function triggerToast(msg) {
+        toastBanner.textContent = msg;
+        toastBanner.classList.remove('translate-y-24', 'opacity-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toastBanner.classList.add('translate-y-24', 'opacity-0');
+        }, 2600);
+      }
+
+      // =====================================================================
+      // 2. SHOWCASE MODE & THEME SWITCHER
+      // =====================================================================
+      let isShowcase = false;
+      const showcaseBtn = document.getElementById('showcaseToggleBtn');
+      showcaseBtn.addEventListener('click', () => {
+        isShowcase = !isShowcase;
+        document.body.classList.toggle('showcase-clean', isShowcase);
+        showcaseBtn.classList.toggle('pill-btn-active', isShowcase);
+        document.getElementById('showcaseLabel').textContent = isShowcase ? 'Exit Showcase' : 'Showcase';
+        playCrystalClink(isShowcase ? 1680 : 1320);
+        triggerToast(isShowcase ? '🎥 Showcase Mode ON — Copy hidden for clean 60fps Twitter capture!' : '🎥 Showcase Mode OFF — Editorial story restored');
+      });
+
+      const htmlEl = document.documentElement;
+      document.getElementById('themeSwitchBtn').addEventListener('click', () => {
+        const cur = htmlEl.getAttribute('data-theme');
+        const next = cur === 'midnight' ? 'terracotta' : 'midnight';
+        htmlEl.setAttribute('data-theme', next);
+        document.getElementById('themeIcon').textContent = next === 'midnight' ? '☀️' : '🌙';
+        playCrystalClink(1560);
+      });
+
+      // =====================================================================
+      // 3. FULL-HERO (100vw × 100vh) THREE.JS 3D BOTANICAL DECANTER STAGE
+      // =====================================================================
+      const stageContainer = document.getElementById('elixirHeroStage');
+      const scene = new THREE.Scene();
+
+      const getHeroSize = () => ({
+        w: Math.max(320, stageContainer.clientWidth || window.innerWidth),
+        h: Math.max(320, stageContainer.clientHeight || window.innerHeight)
+      });
+
+      const initSz = getHeroSize();
+      const camera = new THREE.PerspectiveCamera(42, initSz.w / initSz.h, 0.1, 300);
+      camera.position.set(0, 1.5, 24.5);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(initSz.w, initSz.h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.25;
+      stageContainer.appendChild(renderer.domElement);
+
+      // Warm Golden-Hour & Cellar Studio Lighting
+      const ambientLight = new THREE.AmbientLight(0xfff5eb, 0.85);
+      scene.add(ambientLight);
+
+      const sunKeyLight = new THREE.DirectionalLight(0xfff0db, 2.2);
+      sunKeyLight.position.set(14, 20, 16);
+      scene.add(sunKeyLight);
+
+      const elixirGlowLight = new THREE.PointLight(0xfb7185, 3.4, 55);
+      elixirGlowLight.position.set(4, 2, 10);
+      scene.add(elixirGlowLight);
+
+      const rimAmberLight = new THREE.PointLight(0xf4a261, 2.6, 50);
+      rimAmberLight.position.set(-12, -8, 12);
+      scene.add(rimAmberLight);
+
+      // Master Scene Group (Offset slightly right on desktop so editorial headline & decanter balance)
+      const worldGroup = new THREE.Group();
+      worldGroup.position.x = initSz.w > 1024 ? 3.1 : 0;
+      scene.add(worldGroup);
+
+      const bottleGroup = new THREE.Group();
+      bottleGroup.rotation.z = -0.14;
+      worldGroup.add(bottleGroup);
+
+      // --- 3A. SCULPTED APOTHECARY GLASS DECANTER (LATHE GEOMETRY) ---
+      const bottleProfilePoints = [
+        new THREE.Vector2(0.0, -5.2),
+        new THREE.Vector2(2.35, -5.2),
+        new THREE.Vector2(2.65, -4.6),
+        new THREE.Vector2(2.65, -0.4),
+        new THREE.Vector2(2.45, 1.2),
+        new THREE.Vector2(1.15, 2.5),
+        new THREE.Vector2(0.82, 3.2),
+        new THREE.Vector2(0.82, 4.7),
+        new THREE.Vector2(1.02, 4.95),
+        new THREE.Vector2(0.75, 5.05)
+      ];
+      const bottleGeo = new THREE.LatheGeometry(bottleProfilePoints, 64);
+      const glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.34,
+        roughness: 0.14,
+        metalness: 0.08,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.08,
+        side: THREE.DoubleSide
+      });
+      const bottleMesh = new THREE.Mesh(bottleGeo, glassMaterial);
+      bottleGroup.add(bottleMesh);
+
+      // Inner Glowing Botanical Elixir Core
+      const liquidPoints = [
+        new THREE.Vector2(0.0, -4.95),
+        new THREE.Vector2(2.2, -4.95),
+        new THREE.Vector2(2.45, -4.3),
+        new THREE.Vector2(2.45, -0.5),
+        new THREE.Vector2(2.15, 1.0),
+        new THREE.Vector2(0.0, 1.05)
+      ];
+      const liquidGeo = new THREE.LatheGeometry(liquidPoints, 56);
+      const liquidMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xe11d48,
+        emissive: 0x881337,
+        emissiveIntensity: 0.55,
+        transparent: true,
+        opacity: 0.86,
+        roughness: 0.12,
+        metalness: 0.05
+      });
+      const liquidMesh = new THREE.Mesh(liquidGeo, liquidMaterial);
+      bottleGroup.add(liquidMesh);
+
+      // Fluted Ribbed Gold Neck Collar & Hand-Blown Amber Crystal Stopper
+      const collarMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.88, 0.92, 0.9, 32),
+        new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 })
+      );
+      collarMesh.position.y = 4.1;
+      bottleGroup.add(collarMesh);
+
+      const stopperGroup = new THREE.Group();
+      const corkBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.72, 0.65, 0.9, 24),
+        new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.7 })
+      );
+      corkBase.position.y = 5.1;
+      stopperGroup.add(corkBase);
+
+      const crystalOrbStopper = new THREE.Mesh(
+        new THREE.SphereGeometry(1.08, 32, 24),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xf4a261,
+          emissive: 0x7c2d12,
+          emissiveIntensity: 0.35,
+          roughness: 0.08,
+          metalness: 0.1,
+          transparent: true,
+          opacity: 0.9
+        })
+      );
+      crystalOrbStopper.position.y = 6.0;
+      stopperGroup.add(crystalOrbStopper);
+      bottleGroup.add(stopperGroup);
+
+      // Procedural Wrapped Cream & Gold Foil Apothecary Front Label
+      function createLabelTexture(titleText, subText, accentHex) {
+        const c = document.createElement('canvas');
+        c.width = 512;
+        c.height = 256;
+        const ctx = c.getContext('2d');
+
+        // Warm textured cream paper
+        ctx.fillStyle = '#fbf6ee';
+        ctx.fillRect(0, 0, 512, 256);
+
+        // Double gold hairline border
+        ctx.strokeStyle = accentHex;
+        ctx.lineWidth = 6;
+        ctx.strokeRect(14, 14, 484, 228);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(24, 24, 464, 208);
+
+        ctx.fillStyle = '#1c1310';
+        ctx.font = 'bold 44px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('SOLSTICE', 256, 86);
+
+        ctx.fillStyle = accentHex;
+        ctx.font = 'italic 28px Georgia, serif';
+        ctx.fillText(titleText, 256, 134);
+
+        ctx.fillStyle = '#5c473e';
+        ctx.font = '600 18px monospace';
+        ctx.fillText(subText, 256, 178);
+        ctx.fillText('0.0% ABV · WILD ADAPTOGENIC ELIXIR · 750ML', 256, 212);
+
+        return new THREE.CanvasTexture(c);
+      }
+
+      const labelGeo = new THREE.CylinderGeometry(2.68, 2.68, 3.1, 48, 1, true, -Math.PI * 0.42, Math.PI * 0.84);
+      const labelMat = new THREE.MeshStandardMaterial({
+        map: createLabelTexture('01 / Ruby Hibiscus', 'REISHI · DAMASK ROSE · TART CHERRY', '#e11d48'),
+        roughness: 0.45,
+        metalness: 0.05
+      });
+      const labelMesh = new THREE.Mesh(labelGeo, labelMat);
+      labelMesh.position.y = -2.1;
+      bottleGroup.add(labelMesh);
+
+      // --- 3B. ORBITING 3D CITRUS WHEELS, HIBISCUS PETALS & BOTANICAL SPRIGS ---
+      const botanicalsOrbitGroup = new THREE.Group();
+      worldGroup.add(botanicalsOrbitGroup);
+      const botanicalItems = [];
+
+      const citrusMat = new THREE.MeshStandardMaterial({
+        color: 0xf4a261,
+        emissive: 0x9a3412,
+        emissiveIntensity: 0.28,
+        roughness: 0.35
+      });
+      const petalMat = new THREE.MeshStandardMaterial({
+        color: 0xfb7185,
+        emissive: 0x881337,
+        emissiveIntensity: 0.35,
+        roughness: 0.3,
+        side: THREE.DoubleSide
+      });
+
+      for (let i = 0; i < 26; i++) {
+        const itemGroup = new THREE.Group();
+        const isCitrus = i % 3 === 0;
+
+        if (isCitrus) {
+          // 3D Dehydrated Citrus Wheel (Ring + Pulp Spokes)
+          const rind = new THREE.Mesh(new THREE.TorusGeometry(0.68, 0.09, 12, 32), citrusMat);
+          const pulp = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.64, 0.64, 0.05, 24),
+            new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.55 })
+          );
+          pulp.rotation.x = Math.PI / 2;
+          itemGroup.add(rind);
+          itemGroup.add(pulp);
+        } else {
+          // Sculpted Botanical Petal / Leaf
+          const petalGeo = new THREE.SphereGeometry(0.46, 16, 12);
+          petalGeo.scale(1.35, 0.18, 0.82);
+          const petal = new THREE.Mesh(petalGeo, petalMat);
+          itemGroup.add(petal);
+        }
+
+        const baseRadius = 4.2 + (i % 5) * 1.9;
+        const angle = (i / 26) * Math.PI * 2;
+        const yHeight = (Math.random() - 0.5) * 11.5;
+
+        botanicalsOrbitGroup.add(itemGroup);
+        botanicalItems.push({
+          mesh: itemGroup,
+          baseRadius,
+          angle,
+          yHeight,
+          speedOffset: 0.6 + Math.random() * 0.8,
+          rotSpeed: new THREE.Vector3(Math.random() * 0.02, Math.random() * 0.03, Math.random() * 0.02)
+        });
+      }
+
+      // --- 3C. 2,800 EFFERVESCENT CHAMPAGNE MICRO-BUBBLES ACROSS FULL VIEWPORT ---
+      const BUBBLE_COUNT = 2800;
+      const bGeo = new THREE.BufferGeometry();
+      const bPositions = new Float32Array(BUBBLE_COUNT * 3);
+      const bSpeeds = new Float32Array(BUBBLE_COUNT);
+
+      function makeBubbleSprite() {
+        const c = document.createElement('canvas');
+        c.width = 64;
+        c.height = 64;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(28, 28, 2, 32, 32, 30);
+        g.addColorStop(0, 'rgba(255,255,255,1)');
+        g.addColorStop(0.5, 'rgba(253, 224, 71, 0.75)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 64, 64);
+        return new THREE.CanvasTexture(c);
+      }
+
+      for (let i = 0; i < BUBBLE_COUNT; i++) {
+        bPositions[i * 3] = (Math.random() - 0.5) * 44;
+        bPositions[i * 3 + 1] = (Math.random() - 0.5) * 26;
+        bPositions[i * 3 + 2] = (Math.random() - 0.5) * 22;
+        bSpeeds[i] = 0.025 + Math.random() * 0.065;
+      }
+      bGeo.setAttribute('position', new THREE.BufferAttribute(bPositions, 3));
+
+      const bMat = new THREE.PointsMaterial({
+        size: 0.28,
+        map: makeBubbleSprite(),
+        transparent: true,
+        opacity: 0.85,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        color: 0xfda4af
+      });
+      const bubbleSystem = new THREE.Points(bGeo, bMat);
+      worldGroup.add(bubbleSystem);
+
+      // =====================================================================
+      // 4. FLAVOR EXPRESSION SWITCHER, CORK POP & SLIDERS
+      // =====================================================================
+      const FLAVOR_PROFILES = {
+        hibiscus: {
+          title: 'Crimson Hibiscus',
+          labelTitle: '01 / Ruby Hibiscus',
+          labelSub: 'REISHI · DAMASK ROSE · TART CHERRY',
+          hudTitle: 'CRIMSON HIBISCUS & REISHI',
+          mgText: "1,250mg L-Theanine + Lion's Mane",
+          nose: 'Crushed Tart Cherry & Smoke',
+          palate: 'Velvet Tannin & Pink Pepper',
+          mood: 'Warm Social Unwind (15 mins)',
+          liquidHex: 0xe11d48,
+          emissiveHex: 0x881337,
+          petalHex: 0xfb7185,
+          citrusHex: 0xf4a261,
+          accentCss: '#e11d48'
+        },
+        yuzu: {
+          title: 'Golden Yuzu',
+          labelTitle: '02 / Golden Yuzu',
+          labelSub: 'SAFFRON · CORDYCEPS · BERGAMOT',
+          hudTitle: 'GOLDEN YUZU & SAFFRON',
+          mgText: '1,400mg Cordyceps + Saffron Extract',
+          nose: 'Sun-Cured Yuzu & Meyer Lemon',
+          palate: 'Crisp Ginger & Floral Saffron',
+          mood: 'Luminous Golden-Hour Lift',
+          liquidHex: 0xf59e0b,
+          emissiveHex: 0x78350f,
+          petalHex: 0xfde047,
+          citrusHex: 0xfbbf24,
+          accentCss: '#d97706'
+        },
+        cypress: {
+          title: 'Kyoto Moss',
+          labelTitle: '03 / Kyoto Hinoki',
+          labelSub: 'HINOKI · CEREMONIAL MATCHA · TULSI',
+          hudTitle: 'KYOTO HINOKI & MATCHA',
+          mgText: '1,300mg Ceremonial L-Theanine + Tulsi',
+          nose: 'Rain-Soaked Cedar & Crushed Mint',
+          palate: 'Herbaceous Chartreuse & Lime Leaf',
+          mood: 'Deep Zen Clarity & Focus',
+          liquidHex: 0x10b981,
+          emissiveHex: 0x064e3b,
+          petalHex: 0x6ee7b7,
+          citrusHex: 0xa7f3d0,
+          accentCss: '#059669'
+        },
+        fig: {
+          title: 'Velvet Fig',
+          labelTitle: '04 / Velvet Black Fig',
+          labelSub: 'BLACK FIG · ASHWAGANDHA · CACAO NIB',
+          hudTitle: 'VELVET FIG & ASHWAGANDHA',
+          mgText: '1,500mg KSM-66 Ashwagandha + Cacao',
+          nose: 'Caramelized Black Fig & Vanilla Bean',
+          palate: 'Dark Espresso Oak & Cardamom',
+          mood: 'Late-Night Velvet Restoratif',
+          liquidHex: 0x9333ea,
+          emissiveHex: 0x4c1d95,
+          petalHex: 0xc084fc,
+          citrusHex: 0xf4a261,
+          accentCss: '#7c3aed'
+        }
+      };
+
+      let currentFlavorKey = 'hibiscus';
+      let fizzSpeedMult = 0.85;
+      let swirlSpeedMult = 1.4;
+      let isBotanicalsExploded = false;
+      let corkPopImpulse = 0;
+
+      function switchFlavorProfile(key) {
+        currentFlavorKey = key;
+        const fp = FLAVOR_PROFILES[key];
+        if (!fp) return;
+
+        document.querySelectorAll('.flavor-mode-btn').forEach((b) => {
+          b.classList.toggle('pill-btn-active', b.getAttribute('data-flavor') === key);
+        });
+
+        liquidMaterial.color.setHex(fp.liquidHex);
+        liquidMaterial.emissive.setHex(fp.emissiveHex);
+        elixirGlowLight.color.setHex(fp.petalHex);
+        petalMat.color.setHex(fp.petalHex);
+        citrusMat.color.setHex(fp.citrusHex);
+        bMat.color.setHex(fp.petalHex);
+
+        labelMat.map = createLabelTexture(fp.labelTitle, fp.labelSub, fp.accentCss);
+        labelMat.needsUpdate = true;
+
+        document.getElementById('hudCultivarName').textContent = fp.hudTitle;
+        document.getElementById('hudAdaptogenMg').textContent = fp.mgText;
+        document.getElementById('ctaFlavorTitle').textContent = fp.title;
+        document.getElementById('tastingNose').textContent = fp.nose;
+        document.getElementById('tastingPalate').textContent = fp.palate;
+        document.getElementById('tastingMood').textContent = fp.mood;
+
+        corkPopImpulse = 1.3;
+        playCrystalClink(1420);
+      }
+
+      document.querySelectorAll('.flavor-mode-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          switchFlavorProfile(btn.getAttribute('data-flavor'));
+        });
+      });
+
+      function triggerCorkPopFizz() {
+        corkPopImpulse = 2.4;
+        playCorkPop();
+        setTimeout(() => playCrystalClink(1760), 120);
+      }
+
+      document.getElementById('popCorkBtn').addEventListener('click', () => {
+        triggerCorkPopFizz();
+        triggerToast('🍾 Cork popped! Effervescent botanical micro-bubbles unleashed');
+      });
+
+      stageContainer.addEventListener('click', () => {
+        triggerCorkPopFizz();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+          e.preventDefault();
+          triggerCorkPopFizz();
+        }
+      });
+
+      document.getElementById('deconstructBotanicalsBtn').addEventListener('click', () => {
+        isBotanicalsExploded = !isBotanicalsExploded;
+        document.getElementById('explodeStateText').textContent = isBotanicalsExploded ? 'ON' : 'OFF';
+        corkPopImpulse = 1.5;
+        playCrystalClink(isBotanicalsExploded ? 1850 : 1250);
+        triggerToast(isBotanicalsExploded ? '🌸 Expanded 3D botanical halo & lifted crystal stopper' : '🍾 Restored compact botanical orbit');
+      });
+
+      // Hero Dock Sliders
+      document.getElementById('fizzSlider').addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        fizzSpeedMult = val / 100;
+        document.getElementById('fizzReadout').textContent = `${val}% Fizz`;
+      });
+
+      document.getElementById('swirlSlider').addEventListener('input', (e) => {
+        swirlSpeedMult = parseFloat(e.target.value);
+        document.getElementById('swirlReadout').textContent = `${swirlSpeedMult.toFixed(1)}x Flow`;
+      });
+
+      document.getElementById('frostSlider').addEventListener('input', (e) => {
+        const frost = parseInt(e.target.value, 10);
+        glassMaterial.roughness = 0.05 + (frost / 100) * 0.48;
+        glassMaterial.opacity = 0.26 + (frost / 100) * 0.32;
+        const tempC = Math.round(14 - (frost / 100) * 12);
+        document.getElementById('frostReadout').textContent = `${tempC}°C Chilled`;
+      });
+
+      // Pointer Parallax & Bottle Drag Rotation
+      let pointerNDC = { x: 0, y: 0 };
+      let isDraggingBottle = false;
+      let prevMouse = { x: 0, y: 0 };
+      let targetBottleRotY = 0;
+      let targetBottleRotX = 0.08;
+
+      stageContainer.addEventListener('pointerdown', (e) => {
+        isDraggingBottle = true;
+        prevMouse = { x: e.clientX, y: e.clientY };
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        pointerNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
+        pointerNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        if (isDraggingBottle) {
+          const dx = e.clientX - prevMouse.x;
+          const dy = e.clientY - prevMouse.y;
+          prevMouse = { x: e.clientX, y: e.clientY };
+          targetBottleRotY += dx * 0.008;
+          targetBottleRotX = Math.max(-0.6, Math.min(0.6, targetBottleRotX + dy * 0.006));
+        }
+      });
+
+      window.addEventListener('pointerup', () => {
+        isDraggingBottle = false;
+      });
+
+      window.addEventListener('resize', () => {
+        const sz = getHeroSize();
+        camera.aspect = sz.w / sz.h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(sz.w, sz.h);
+        worldGroup.position.x = sz.w > 1024 && !isShowcase ? 3.1 : 0;
+      });
+
+      // Main 3D Render Loop
+      let clockTime = 0;
+      function animateElixirHero() {
+        requestAnimationFrame(animateElixirHero);
+        clockTime += 0.015;
+        corkPopImpulse *= 0.92;
+
+        // Smoothly center bottle in Showcase Mode or offset right on desktop
+        const desiredWorldX = window.innerWidth > 1024 && !isShowcase ? 3.1 : 0;
+        worldGroup.position.x += (desiredWorldX - worldGroup.position.x) * 0.06;
+
+        // Gentle floating levitation & rotation of 3D bottle
+        bottleGroup.position.y = Math.sin(clockTime * 1.3) * 0.35;
+        bottleGroup.rotation.y += (targetBottleRotY + clockTime * 0.25 + pointerNDC.x * 0.45 - bottleGroup.rotation.y) * 0.06;
+        bottleGroup.rotation.x += (targetBottleRotX - pointerNDC.y * 0.22 - bottleGroup.rotation.x) * 0.06;
+
+        // Lift Crystal Stopper when Cork Popped or Exploded Mode ON
+        const targetStopperY = (isBotanicalsExploded ? 2.1 : 0) + corkPopImpulse * 1.4;
+        stopperGroup.position.y += (targetStopperY - stopperGroup.position.y) * 0.12;
+        stopperGroup.rotation.y = clockTime * 0.8;
+
+        // Orbiting 3D Citrus Slices & Hibiscus Petals
+        const expandMult = (isBotanicalsExploded ? 1.65 : 1.0) + corkPopImpulse * 0.35;
+        for (let i = 0; i < botanicalItems.length; i++) {
+          const item = botanicalItems[i];
+          const a = item.angle + clockTime * 0.32 * swirlSpeedMult * item.speedOffset;
+          const r = item.baseRadius * expandMult;
+          item.mesh.position.set(
+            Math.cos(a) * r,
+            item.yHeight + Math.sin(clockTime * 1.5 + i) * 0.65,
+            Math.sin(a) * r
+          );
+          item.mesh.rotation.x += item.rotSpeed.x * swirlSpeedMult;
+          item.mesh.rotation.y += item.rotSpeed.y * swirlSpeedMult;
+          item.mesh.rotation.z += item.rotSpeed.z * swirlSpeedMult;
+        }
+
+        // Advect 2,800 Rising Effervescent Champagne Bubbles
+        const posAttr = bGeo.attributes.position;
+        const arr = posAttr.array;
+        const riseRate = fizzSpeedMult + corkPopImpulse * 1.8;
+
+        for (let i = 0; i < BUBBLE_COUNT; i++) {
+          const idx = i * 3;
+          arr[idx + 1] += bSpeeds[i] * riseRate;
+          arr[idx] += Math.sin(clockTime * 2.0 + i) * 0.012 * swirlSpeedMult;
+
+          if (arr[idx + 1] > 13) {
+            arr[idx + 1] = -13;
+            arr[idx] = (Math.random() - 0.5) * 42;
+          }
+        }
+        posAttr.needsUpdate = true;
+
+        renderer.render(scene, camera);
+      }
+      animateElixirHero();
+
+      // =====================================================================
+      // 5. SECTION 02: 2D CRYSTAL COUPE SPRITZ MIXOLOGY SIMULATOR
+      // =====================================================================
+      const mixCanvas = document.getElementById('mixologyCanvas');
+      const mCtx = mixCanvas.getContext('2d');
+      let baseMl = 60;
+      let tonicMl = 90;
+      let garnishKey = 'bloodorange';
+      let iceBobPhase = 0;
+      let iceSplashAmp = 0;
+
+      const coupeBubbles = Array.from({ length: 48 }, () => ({
+        xOff: (Math.random() - 0.5) * 150,
+        yRatio: Math.random(),
+        r: 1.5 + Math.random() * 2.8,
+        speed: 0.008 + Math.random() * 0.015
+      }));
+
+      function updateMixologyReadout() {
+        const cals = Math.round(baseMl * 0.25 + tonicMl * 0.08);
+        const mood = Math.min(99, Math.round(78 + (baseMl / 90) * 21));
+        document.getElementById('mixCalories').textContent = `${cals} kcal`;
+        document.getElementById('mixMoodScore').textContent = `${mood}% Euphoria`;
+      }
+
+      document.getElementById('pourBaseSlider').addEventListener('input', (e) => {
+        baseMl = parseInt(e.target.value, 10);
+        document.getElementById('pourBaseVal').textContent = `${baseMl} ml`;
+        updateMixologyReadout();
+      });
+
+      document.getElementById('tonicTopSlider').addEventListener('input', (e) => {
+        tonicMl = parseInt(e.target.value, 10);
+        document.getElementById('tonicTopVal').textContent = `${tonicMl} ml`;
+        updateMixologyReadout();
+      });
+
+      document.querySelectorAll('.garnish-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.garnish-btn').forEach((b) => b.classList.remove('pill-btn-active'));
+          btn.classList.add('pill-btn-active');
+          garnishKey = btn.getAttribute('data-garnish');
+          playCrystalClink(1600);
+        });
+      });
+
+      function triggerIceDrop() {
+        iceSplashAmp = 18;
+        playCrystalClink(1380);
+        triggerToast('🧊 Hand-carved crystal ice sphere dropped into coupe');
+      }
+
+      document.getElementById('dropIceSplashBtn').addEventListener('click', triggerIceDrop);
+      mixCanvas.addEventListener('click', triggerIceDrop);
+
+      function renderMixologySimulator() {
+        requestAnimationFrame(renderMixologySimulator);
+        const w = mixCanvas.clientWidth || 680;
+        const h = mixCanvas.clientHeight || 350;
+        if (mixCanvas.width !== w || mixCanvas.height !== h) {
+          mixCanvas.width = w;
+          mixCanvas.height = h;
+        }
+
+        mCtx.clearRect(0, 0, w, h);
+        iceBobPhase += 0.05;
+        iceSplashAmp *= 0.92;
+
+        const cx = w / 2;
+        const bowlTopY = 65;
+        const bowlBotY = 215;
+        const bowlHalfW = 105;
+
+        // Fill level based on baseMl + tonicMl (max 240ml)
+        const fillNorm = Math.min(0.92, (baseMl + tonicMl) / 240);
+        const liquidSurfaceY = bowlBotY - fillNorm * (bowlBotY - bowlTopY);
+
+        // Clip inside Crystal Coupe Bowl
+        mCtx.save();
+        mCtx.beginPath();
+        mCtx.moveTo(cx - bowlHalfW, bowlTopY);
+        mCtx.quadraticCurveTo(cx - bowlHalfW, bowlBotY, cx, bowlBotY);
+        mCtx.quadraticCurveTo(cx + bowlHalfW, bowlBotY, cx + bowlHalfW, bowlTopY);
+        mCtx.closePath();
+        mCtx.clip();
+
+        // Gradient Elixir + Sparkling Tonic Fill
+        const grad = mCtx.createLinearGradient(0, liquidSurfaceY, 0, bowlBotY);
+        grad.addColorStop(0, 'rgba(251, 146, 60, 0.78)');
+        grad.addColorStop(1, 'rgba(225, 29, 72, 0.92)');
+        mCtx.fillStyle = grad;
+
+        mCtx.beginPath();
+        mCtx.moveTo(cx - bowlHalfW - 20, bowlBotY + 20);
+        for (let x = cx - bowlHalfW; x <= cx + bowlHalfW; x += 6) {
+          const waveY = liquidSurfaceY + Math.sin(x * 0.05 + iceBobPhase * 2.0) * (2.5 + iceSplashAmp * 0.4);
+          mCtx.lineTo(x, waveY);
+        }
+        mCtx.lineTo(cx + bowlHalfW + 20, bowlBotY + 20);
+        mCtx.closePath();
+        mCtx.fill();
+
+        // Bobbing Crystal Ice Sphere inside Coupe
+        const iceY = liquidSurfaceY + 18 + Math.sin(iceBobPhase) * (4 + iceSplashAmp);
+        mCtx.fillStyle = 'rgba(224, 242, 254, 0.38)';
+        mCtx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+        mCtx.lineWidth = 2;
+        mCtx.beginPath();
+        mCtx.arc(cx, iceY, 28, 0, Math.PI * 2);
+        mCtx.fill();
+        mCtx.stroke();
+
+        // Garnish Element
+        if (garnishKey === 'bloodorange') {
+          mCtx.fillStyle = '#ea580c';
+          mCtx.beginPath();
+          mCtx.arc(cx + 38, liquidSurfaceY + 6, 22, 0, Math.PI);
+          mCtx.fill();
+        } else if (garnishKey === 'rosemary') {
+          mCtx.strokeStyle = '#4ade80';
+          mCtx.lineWidth = 3;
+          mCtx.beginPath();
+          mCtx.moveTo(cx - 25, liquidSurfaceY + 35);
+          mCtx.lineTo(cx + 45, bowlTopY - 15);
+          mCtx.stroke();
+        } else if (garnishKey === 'ediblegold') {
+          mCtx.fillStyle = '#fde047';
+          for (let g = 0; g < 12; g++) {
+            mCtx.fillRect(cx - 45 + g * 8, liquidSurfaceY + 4 + Math.sin(g + iceBobPhase) * 3, 4, 4);
+          }
+        }
+
+        // Rising Effervescent Coupe Bubbles
+        mCtx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+        coupeBubbles.forEach((b) => {
+          b.yRatio -= b.speed;
+          if (b.yRatio < 0) b.yRatio = 1;
+          const by = liquidSurfaceY + b.yRatio * (bowlBotY - liquidSurfaceY);
+          mCtx.beginPath();
+          mCtx.arc(cx + b.xOff * (1 - b.yRatio * 0.4), by, b.r, 0, Math.PI * 2);
+          mCtx.fill();
+        });
+        mCtx.restore();
+
+        // Draw Crystal Coupe Rim, Stem & Base
+        mCtx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+        mCtx.lineWidth = 2.6;
+        mCtx.beginPath();
+        mCtx.moveTo(cx - bowlHalfW, bowlTopY);
+        mCtx.quadraticCurveTo(cx - bowlHalfW, bowlBotY, cx, bowlBotY);
+        mCtx.quadraticCurveTo(cx + bowlHalfW, bowlBotY, cx + bowlHalfW, bowlTopY);
+        mCtx.closePath();
+        mCtx.stroke();
+
+        // Stem & Foot
+        mCtx.beginPath();
+        mCtx.moveTo(cx, bowlBotY);
+        mCtx.lineTo(cx, 315);
+        mCtx.moveTo(cx - 52, 315);
+        mCtx.lineTo(cx + 52, 315);
+        mCtx.stroke();
+      }
+      renderMixologySimulator();
+
+      // =====================================================================
+      // 6. SECTION 04: TASTING FLIGHT BUNDLE BUILDER & BAG COUNTER
+      // =====================================================================
+      const bundleQtys = { hibiscus: 1, yuzu: 1, cypress: 1, fig: 0 };
+      let isMonthlySub = true;
+      let bagCount = 1;
+
+      function updateBundleUI() {
+        let totalBottles = 0;
+        Object.keys(bundleQtys).forEach((k) => {
+          totalBottles += bundleQtys[k];
+          document.getElementById(`qty-${k}`).textContent = bundleQtys[k];
+        });
+
+        const rawTotal = totalBottles * 44;
+        const discountRate = isMonthlySub || totalBottles >= 3 ? 0.85 : 1.0;
+        const finalPrice = Math.round(rawTotal * discountRate);
+
+        document.getElementById('bundleStatusHeadline').textContent =
+          totalBottles >= 3
+            ? `${totalBottles} Bottles Selected (15% Off)`
+            : `${totalBottles} Bottle${totalBottles === 1 ? '' : 's'} Selected`;
+
+        document.getElementById('bundleStrikePrice').textContent = `$${rawTotal}`;
+        document.getElementById('bundleFinalPrice').textContent = `$${finalPrice}`;
+      }
+
+      document.querySelectorAll('.bundle-qty-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const key = btn.getAttribute('data-bottle');
+          const delta = parseInt(btn.getAttribute('data-delta'), 10);
+          bundleQtys[key] = Math.max(0, Math.min(12, bundleQtys[key] + delta));
+          updateBundleUI();
+          switchFlavorProfile(key);
+        });
+      });
+
+      document.querySelectorAll('.sub-mode-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sub-mode-btn').forEach((b) => b.classList.remove('pill-btn-active'));
+          btn.classList.add('pill-btn-active');
+          isMonthlySub = btn.getAttribute('data-sub') === 'monthly';
+          updateBundleUI();
+          playCrystalClink(1520);
+        });
+      });
+
+      function addToBagNotification(label) {
+        bagCount++;
+        document.getElementById('navBagCount').textContent = bagCount;
+        playCorkPop();
+        triggerToast(`🛍️ Added ${label} to your tasting bag`);
+      }
+
+      document.getElementById('heroQuickAddBtn').addEventListener('click', () => {
+        const fp = FLAVOR_PROFILES[currentFlavorKey];
+        addToBagNotification(`${fp.title} (750ml Decanter)`);
+      });
+
+      document.getElementById('checkoutFlightBtn').addEventListener('click', () => {
+        addToBagNotification('Custom 3-Bottle Ritual Flight + Crystal Stopper');
+      });
+
+      document.getElementById('openBagBtn').addEventListener('click', () => {
+        document.getElementById('ritual-box').scrollIntoView({ behavior: 'smooth' });
+        playCrystalClink(1640);
+      });
+    };
+  </script>
+</body>
+</html>

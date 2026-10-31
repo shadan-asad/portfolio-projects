@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="obsidian">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SYNTHOMA™ — Autonomous Morphogenetic Compute &amp; Neural Fluid Foundry</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    :root[data-theme="obsidian"] {
+      --bg-primary: #040508;
+      --bg-secondary: #0a0d14;
+      --bg-card: rgba(12, 16, 26, 0.72);
+      --bg-hud: rgba(8, 11, 18, 0.76);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border-hairline: rgba(255, 255, 255, 0.11);
+      --border-strong: rgba(56, 189, 248, 0.38);
+      --accent-primary: #38bdf8;
+      --accent-secondary: #c084fc;
+      --accent-tertiary: #f43f5e;
+      --accent-emerald: #10b981;
+      --pill-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    :root[data-theme="alabaster"] {
+      --bg-primary: #f3f1ec;
+      --bg-secondary: #e7e3da;
+      --bg-card: rgba(255, 253, 248, 0.82);
+      --bg-hud: rgba(248, 245, 238, 0.84);
+      --text-primary: #0f141c;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --border-hairline: rgba(15, 20, 28, 0.12);
+      --border-strong: rgba(14, 165, 233, 0.45);
+      --accent-primary: #0284c7;
+      --accent-secondary: #7c3aed;
+      --accent-tertiary: #e11d48;
+      --accent-emerald: #059669;
+      --pill-bg: rgba(15, 20, 28, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .font-display {
+      font-family: 'Syne', sans-serif;
+    }
+
+    .font-serif-editorial {
+      font-family: 'Instrument Serif', Georgia, serif;
+    }
+
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Glassmorphism HUD & Cards */
+    .hud-glass {
+      background: var(--bg-hud);
+      backdrop-filter: blur(20px) saturate(165%);
+      -webkit-backdrop-filter: blur(20px) saturate(165%);
+      border: 1px solid var(--border-hairline);
+      box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.65);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hud-glass:hover {
+      border-color: var(--border-strong);
+    }
+
+    .tactile-btn {
+      background: var(--pill-bg);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .tactile-btn:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    .tactile-btn-active {
+      background: linear-gradient(135deg, #38bdf8, #818cf8) !important;
+      color: #030712 !important;
+      border-color: #38bdf8 !important;
+      font-weight: 700;
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.45);
+    }
+
+    /* Custom Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.28);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.85);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Full-Viewport Hero WebGL Stage */
+    #heroCanvasStage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    #heroCanvasStage canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      outline: none;
+    }
+
+    /* Subtle radial vignette that lets the full-bleed animation shine */
+    .hero-vignette {
+      background: radial-gradient(circle at 58% 48%, transparent 20%, rgba(4, 5, 8, 0.48) 72%, rgba(4, 5, 8, 0.88) 100%);
+    }
+
+    :root[data-theme="alabaster"] .hero-vignette {
+      background: radial-gradient(circle at 58% 48%, transparent 25%, rgba(243, 241, 236, 0.42) 75%, rgba(243, 241, 236, 0.88) 100%);
+    }
+
+    /* Showcase Mode hides text overlays so Twitter screen recordings capture pure 3D + dock */
+    body.showcase-clean .hero-editorial-copy {
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+      pointer-events: none;
+    }
+
+    .hero-editorial-copy {
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes marqueeScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marqueeScroll 30s linear infinite;
+    }
+  </style>
+</head>
+<body class="selection:bg-sky-400 selection:text-slate-950">
+
+  <!-- ===================================================================== -->
+  <!-- FLOATING TOP ARCHITECTURAL NAVBAR (OVERLAYING THE FULL HERO)          -->
+  <!-- ===================================================================== -->
+  <header class="fixed top-3 left-0 right-0 z-50 px-4 sm:px-8 max-w-[1440px] mx-auto pointer-events-none">
+    <nav class="hud-glass rounded-2xl px-4 sm:px-6 py-2.5 flex items-center justify-between pointer-events-auto">
+      <!-- Brand Identity -->
+      <a href="#hero-stage" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 via-indigo-500 to-fuchsia-500 flex items-center justify-center text-slate-950 font-mono-tech font-extrabold text-sm shadow-lg shadow-sky-500/30 group-hover:rotate-180 transition-transform duration-500">
+          ◈
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display font-extrabold text-base tracking-tight">SYNTHOMA</span>
+            <span class="font-mono-tech text-[9px] uppercase px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-400/30">OS v4.8</span>
+          </div>
+          <span class="font-mono-tech text-[10px] text-[var(--text-muted)] hidden sm:block">Morphogenetic Fluid Compute Foundry</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="hidden xl:flex items-center gap-7 text-xs font-mono-tech uppercase tracking-wider text-[var(--text-secondary)]">
+        <a href="#hero-stage" class="hover:text-sky-400 transition-colors">01 / Full-Hero Singularity</a>
+        <a href="#acoustic-chamber" class="hover:text-sky-400 transition-colors">02 / Harmonic Chamber</a>
+        <a href="#spatial-sdk" class="hover:text-sky-400 transition-colors">03 / Fluid Shader SDK</a>
+        <a href="#cluster-calc" class="hover:text-sky-400 transition-colors">04 / Exascale Yield</a>
+        <a href="#foundry-tiers" class="hover:text-sky-400 transition-colors">05 / Foundry Nodes</a>
+      </div>
+
+      <!-- Interactive Utility Bar (Showcase Mode, Audio Synth, Theme, CTA) -->
+      <div class="flex items-center gap-2">
+        <button id="showcaseToggleBtn" class="tactile-btn px-3 py-1.5 rounded-xl text-xs font-mono-tech font-semibold flex items-center gap-1.5" title="Hide hero text overlays to record pure full-screen 3D visuals for Twitter/X">
+          <span>🎥</span>
+          <span id="showcaseBtnText" class="hidden sm:inline">Showcase Mode</span>
+        </button>
+        <button id="themeSwitchBtn" class="tactile-btn px-3 py-1.5 rounded-xl text-xs font-mono-tech font-semibold flex items-center gap-1.5" title="Toggle Obsidian Void / Alabaster Lab Theme">
+          <span id="themeIcon">☀️</span>
+          <span id="themeText" class="hidden md:inline">Alabaster</span>
+        </button>
+        <button id="audioToggleBtn" class="tactile-btn p-2 rounded-xl text-xs font-mono-tech" title="Toggle Web Audio Harmonic Synthesizer">
+          <span id="audioIcon">🔊</span>
+        </button>
+        <a href="#foundry-tiers" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-400 via-indigo-400 to-fuchsia-400 text-slate-950 font-bold text-xs tracking-wide shadow-lg shadow-sky-500/25 hover:brightness-110 transition-all">
+          Deploy Node &rarr;
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- 01 // FULL-VIEWPORT (100vw x 100vh) INTERACTIVE 3D HERO SECTION       -->
+  <!-- ===================================================================== -->
+  <section id="hero-stage" class="relative w-screen min-h-screen h-screen overflow-hidden flex flex-col justify-between pt-20 pb-6 px-4 sm:px-8 select-none">
+
+    <!-- THE WHOLE HERO SECTION ANIMATION: 6,400-PARTICLE + MORPHOGENETIC CORE 3D CANVAS -->
+    <div id="heroCanvasStage" class="cursor-crosshair" title="Move cursor to warp gravitational field • Click anywhere to detonate a shockwave • Drag to orbit"></div>
+
+    <!-- Subtle Radial Vignette for Editorial Contrast (Pointer-events-none so whole hero is interactive) -->
+    <div class="hero-vignette absolute inset-0 z-[2] pointer-events-none"></div>
+
+    <!-- TOP TELEMETRY CORNER STRIP (Inside Hero) -->
+    <div class="relative z-10 max-w-[1440px] w-full mx-auto flex flex-wrap items-center justify-between gap-2 pt-2 pointer-events-none font-mono-tech text-[11px]">
+      <div class="hud-glass px-3.5 py-1.5 rounded-xl flex items-center gap-3 pointer-events-auto">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="text-[var(--text-secondary)]">WEBGL FLUID KERNEL: <strong class="text-sky-400">6,400 NODES ACTIVE</strong></span>
+        <span class="text-[var(--text-muted)] hidden sm:inline">|</span>
+        <span id="cursorCoordHud" class="text-[var(--text-primary)] hidden sm:inline">VEC(0.00, 0.00)</span>
+      </div>
+
+      <div class="hud-glass px-3.5 py-1.5 rounded-xl hidden md:flex items-center gap-4 pointer-events-auto">
+        <span>TOPOLOGY: <strong id="hudTopologyName" class="text-fuchsia-400">01 // SINGULARITY VORTEX</strong></span>
+        <span class="text-[var(--text-muted)]">|</span>
+        <span>COHERENCE: <strong id="hudCoherenceVal" class="text-emerald-400">99.4%</strong></span>
+      </div>
+    </div>
+
+    <!-- CENTER OVERLAID EDITORIAL HERO CONTENT (Pointer-events-none container, auto on buttons) -->
+    <div class="hero-editorial-copy relative z-10 max-w-[1440px] w-full mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-center pointer-events-none">
+      <div class="lg:col-span-7 space-y-5 text-left">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full hud-glass text-xs font-mono-tech pointer-events-auto">
+          <span class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 font-bold text-[10px]">AWWWARDS SOTD CONCEPT</span>
+          <span class="text-[var(--text-secondary)]">Interactive Full-Viewport Morphogenetic Field</span>
+        </div>
+
+        <h1 class="font-display text-4xl sm:text-6xl xl:text-[4.35rem] font-extrabold tracking-tight leading-[0.98]">
+          Compute that <span class="font-serif-editorial italic font-normal bg-gradient-to-r from-sky-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent pr-1">breathes</span> across the entire canvas.
+        </h1>
+
+        <p class="text-sm sm:text-base lg:text-lg text-[var(--text-secondary)] max-w-xl leading-relaxed">
+          Move your cursor anywhere across this viewport to sculpt <strong>6,400 real-time ferrofluid tensor particles</strong> and a morphing icosahedral singularity. Built for sub-millisecond spatial AI workloads.
+        </p>
+
+        <!-- Primary Interactive Hero Triggers -->
+        <div class="flex flex-wrap items-center gap-3 pt-1 pointer-events-auto">
+          <button id="pulseShockwaveBtn" class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-sky-400 via-indigo-400 to-fuchsia-400 text-slate-950 font-bold text-xs sm:text-sm tracking-wide shadow-xl shadow-sky-500/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+            <span>💥 Detonate Singularity Pulse</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-slate-950/20 font-mono-tech text-[10px]">SPACE</kbd>
+          </button>
+
+          <button id="timeWarpBtn" class="tactile-btn hud-glass px-4 py-3.5 rounded-2xl font-mono-tech text-xs font-semibold flex items-center gap-2">
+            <span>⏱️ Time-Dilation: <strong id="timeWarpState" class="text-sky-400">1.0x</strong></span>
+          </button>
+
+          <button id="wireframeCoreBtn" class="tactile-btn hud-glass px-4 py-3.5 rounded-2xl font-mono-tech text-xs font-semibold flex items-center gap-2">
+            <span>🕸️ X-Ray Lattice: <strong id="wireframeState">OFF</strong></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Floating Telemetry Card (Optional quick-stats on desktop) -->
+      <div class="lg:col-span-5 hidden lg:flex justify-end">
+        <div class="hud-glass rounded-3xl p-5 w-80 space-y-4 pointer-events-auto">
+          <div class="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3">
+            <span class="font-mono-tech text-[11px] uppercase tracking-wider text-[var(--text-secondary)]">Live Kernel Telemetry</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono-tech text-[10px] font-bold">120 FPS LOCK</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3 font-mono-tech">
+            <div class="p-3 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+              <div class="text-[10px] text-[var(--text-muted)]">TENSOR FLUX</div>
+              <div id="statFluxVal" class="text-lg font-bold text-sky-400 mt-0.5">148.2 PFLOPS</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+              <div class="text-[10px] text-[var(--text-muted)]">FIELD VORTICITY</div>
+              <div id="statVorticityVal" class="text-lg font-bold text-fuchsia-400 mt-0.5">2.40 rad/s</div>
+            </div>
+          </div>
+          <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+            💡 <strong>Pro Tip for Twitter/X:</strong> Click <em>"🎥 Showcase Mode"</em> in the top bar to hide text overlays and record a clean 60fps clip of the full-screen morphing states.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM FULL-HERO INTERACTIVE MORPHOLOGY & SHADER CONTROL DOCK -->
+    <div class="relative z-10 max-w-[1440px] w-full mx-auto pointer-events-auto">
+      <div class="hud-glass rounded-3xl p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+        <!-- 4 Real-Time 3D Morphology Presets -->
+        <div class="lg:col-span-6 grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button data-morph="vortex" class="morph-mode-btn tactile-btn tactile-btn-active py-2.5 px-3 rounded-2xl text-xs font-mono-tech text-center flex flex-col items-center gap-0.5">
+            <span>🌀 01. Vortex</span>
+            <span class="text-[9px] opacity-75">Orbital Singularity</span>
+          </button>
+          <button data-morph="crown" class="morph-mode-btn tactile-btn py-2.5 px-3 rounded-2xl text-xs font-mono-tech text-center flex flex-col items-center gap-0.5">
+            <span>👑 02. Ferrofluid</span>
+            <span class="text-[9px] opacity-75">Magnetic Spikes</span>
+          </button>
+          <button data-morph="helix" class="morph-mode-btn tactile-btn py-2.5 px-3 rounded-2xl text-xs font-mono-tech text-center flex flex-col items-center gap-0.5">
+            <span>🧬 03. Bio-Helix</span>
+            <span class="text-[9px] opacity-75">Double Strand</span>
+          </button>
+          <button data-morph="lattice" class="morph-mode-btn tactile-btn py-2.5 px-3 rounded-2xl text-xs font-mono-tech text-center flex flex-col items-center gap-0.5">
+            <span>💠 04. Hyper-Grid</span>
+            <span class="text-[9px] opacity-75">Quantum Matrix</span>
+          </button>
+        </div>
+
+        <!-- Real-Time Shader & Physics Sliders -->
+        <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-3 gap-3 px-1 font-mono-tech text-xs">
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-[var(--text-secondary)]">TURBULENCE</span>
+              <span id="turbReadout" class="text-sky-400 font-bold">2.4x</span>
+            </div>
+            <input id="turbSlider" type="range" min="0.2" max="5.0" step="0.1" value="2.4" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-[var(--text-secondary)]">CURSOR GRAVITY</span>
+              <span id="gravReadout" class="text-fuchsia-400 font-bold">140%</span>
+            </div>
+            <input id="gravSlider" type="range" min="20" max="250" step="10" value="140" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-[var(--text-secondary)]">SPECTRUM SHIFT</span>
+              <span id="hueReadout" class="text-emerald-400 font-bold">0° Cyber</span>
+            </div>
+            <input id="hueSlider" type="range" min="0" max="360" step="5" value="0" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- INFINITE TELEMETRY MARQUEE STRIP                                      -->
+  <!-- ===================================================================== -->
+  <div class="border-y border-[var(--border-hairline)] bg-[var(--bg-secondary)] py-4 overflow-hidden">
+    <div class="marquee-track flex items-center gap-12 font-mono-tech text-xs uppercase tracking-widest text-[var(--text-muted)]">
+      <span>◈ 6,400 REAL-TIME VERLET PARTICLES</span>
+      <span>✦ ZERO-LATENCY CURSOR MAGNETOHYDRODYNAMICS</span>
+      <span>❖ AWWWARDS SITE OF THE YEAR ARCHITECTURE</span>
+      <span>▲ PROCEDURAL WEB-AUDIO HARMONIC SYNTHESIZER</span>
+      <span>⬡ SUB-MILLISECOND SPATIAL TENSOR COMPILATION</span>
+      <span>◈ 6,400 REAL-TIME VERLET PARTICLES</span>
+      <span>✦ ZERO-LATENCY CURSOR MAGNETOHYDRODYNAMICS</span>
+      <span>❖ AWWWARDS SITE OF THE YEAR ARCHITECTURE</span>
+      <span>▲ PROCEDURAL WEB-AUDIO HARMONIC SYNTHESIZER</span>
+      <span>⬡ SUB-MILLISECOND SPATIAL TENSOR COMPILATION</span>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- BELOW-THE-FOLD ARCHITECTURAL PRODUCT SECTIONS                         -->
+  <!-- ===================================================================== -->
+  <main class="max-w-[1380px] mx-auto px-4 sm:px-8 py-24 space-y-28">
+
+    <!-- 02 // INTERACTIVE 2D ULTRASONIC STANDING-WAVE LEVITATION CHAMBER -->
+    <section id="acoustic-chamber" class="space-y-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--border-hairline)] pb-6">
+        <div class="space-y-2 max-w-2xl">
+          <div class="text-xs font-mono-tech uppercase tracking-widest text-sky-400 font-bold">
+            02 // Acoustic Phase-Array Confinement
+          </div>
+          <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight">
+            Standing-wave harmonic levitation chamber.
+          </h2>
+        </div>
+        <p class="text-sm text-[var(--text-secondary)] max-w-md">
+          Adjust the ultrasonic transducer harmonic nodes and phase velocity below to trap and route plasma droplets inside a contactless interference lattice.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <!-- Interactive 2D Standing Wave Canvas -->
+        <div class="lg:col-span-8 rounded-3xl bg-[#06080f] border border-[var(--border-strong)] overflow-hidden flex flex-col justify-between shadow-2xl">
+          <div class="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-2 font-mono-tech text-xs text-slate-300 bg-black/40">
+            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-sky-400"></span> 40 kHz PHASED TRANSDUCER INTERFERENCE</span>
+            <div class="flex items-center gap-4">
+              <span>NODES LOCKED: <strong id="chamberNodeReadout" class="text-sky-400">5 HARMONICS</strong></span>
+              <span>PRESSURE: <strong id="chamberPaReadout" class="text-emerald-400">164.2 dB SPL</strong></span>
+            </div>
+          </div>
+          <canvas id="standingWaveCanvas" class="w-full h-[340px] block cursor-pointer" title="Click inside chamber to inject new levitating plasma droplets"></canvas>
+        </div>
+
+        <!-- Chamber Controls -->
+        <div class="lg:col-span-4 hud-glass rounded-3xl p-6 flex flex-col justify-between space-y-6">
+          <div class="space-y-5">
+            <h3 class="font-display font-bold text-lg">Transducer Array Controls</h3>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-tech">
+                <label for="harmonicNodesSlider">STANDING WAVE HARMONIC (N)</label>
+                <span id="harmonicNodesVal" class="text-sky-400 font-bold">N = 5</span>
+              </div>
+              <input id="harmonicNodesSlider" type="range" min="2" max="9" step="1" value="5" />
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-tech">
+                <label for="carrierAmpSlider">ACOUSTIC RADIATION GAIN</label>
+                <span id="carrierAmpVal" class="text-fuchsia-400 font-bold">85%</span>
+              </div>
+              <input id="carrierAmpSlider" type="range" min="25" max="140" step="5" value="85" />
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-tech">
+                <label for="phaseDriftSlider">PHASE TRANSPORT VELOCITY</label>
+                <span id="phaseDriftVal" class="text-emerald-400 font-bold">1.8 m/s</span>
+              </div>
+              <input id="phaseDriftSlider" type="range" min="0" max="5" step="0.2" value="1.8" />
+            </div>
+
+            <button id="injectDropletsBtn" class="tactile-btn w-full py-3 rounded-xl font-mono-tech text-xs font-bold">
+              ✨ Inject 12 Quantum Droplets
+            </button>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] font-mono-tech text-xs space-y-1">
+            <div class="text-[10px] text-[var(--text-muted)] uppercase">Trap Stability Index</div>
+            <div class="text-xl font-bold text-emerald-400">99.94% Zero-Contact</div>
+            <div class="text-[11px] text-[var(--text-secondary)]">Click directly on the waveform canvas to seed custom droplets.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 // SPATIAL SHADER SDK & BENTO ARCHITECTURE -->
+    <section id="spatial-sdk" class="space-y-8">
+      <div class="space-y-2">
+        <div class="text-xs font-mono-tech uppercase tracking-widest text-fuchsia-400 font-bold">
+          03 // Declarative Morphogenetic SDK
+        </div>
+        <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight">
+          Program matter &amp; shaders in 12 lines of code.
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Code Playground Card -->
+        <div class="lg:col-span-7 hud-glass rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-mono-tech uppercase text-sky-400 font-bold">SynthomaCore SDK</span>
+              <h3 class="font-display text-xl font-bold mt-0.5">Real-Time Tensor Field Pipeline</h3>
+            </div>
+            <div class="flex gap-1.5 font-mono-tech text-xs">
+              <button data-sdk="ts" class="sdk-tab-btn tactile-btn tactile-btn-active px-3 py-1 rounded-lg">TypeScript</button>
+              <button data-sdk="glsl" class="sdk-tab-btn tactile-btn px-3 py-1 rounded-lg">GLSL Kernel</button>
+              <button data-sdk="rust" class="sdk-tab-btn tactile-btn px-3 py-1 rounded-lg">Rust CUDA</button>
+            </div>
+          </div>
+
+          <pre id="sdkPreBlock" class="bg-[#05070e] text-slate-200 p-5 rounded-2xl border border-white/10 font-mono-tech text-xs overflow-x-auto leading-relaxed"><span class="text-sky-400">import</span> { MorphField, SingularityCore } <span class="text-sky-400">from</span> <span class="text-amber-300">'@synthoma/spatial-sdk'</span>;
+
+<span class="text-slate-500">// Initialize 6,400-node full-viewport ferrofluid singularity</span>
+<span class="text-sky-400">const</span> field = <span class="text-sky-400">await</span> MorphField.<span class="text-emerald-300">boot</span>({ nodes: <span class="text-fuchsia-300">6400</span>, precision: <span class="text-amber-300">'fp16'</span> });
+
+field.<span class="text-emerald-300">onCursorAttractor</span>((vec3, curl) =&gt; {
+  <span class="text-sky-400">return</span> SingularityCore.<span class="text-emerald-300">advect</span>(vec3, {
+    topology: <span class="text-amber-300">'ferrofluid-crown'</span>,
+    vorticity: curl * <span class="text-fuchsia-300">2.4</span>,
+    harmonicLock: <span class="text-fuchsia-300">true</span>
+  });
+});</pre>
+
+          <div class="flex items-center justify-between text-xs font-mono-tech">
+            <span class="text-[var(--text-muted)]">Zero-dependency WebGPU / WebGL2 runtime</span>
+            <button id="copySdkCodeBtn" class="tactile-btn px-4 py-1.5 rounded-xl font-semibold">
+              📋 Copy Snippet
+            </button>
+          </div>
+        </div>
+
+        <!-- Right 5 Cols: Benchmark Comparison Table -->
+        <div class="lg:col-span-5 hud-glass rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-5">
+          <div>
+            <span class="text-xs font-mono-tech uppercase text-emerald-400 font-bold">Exascale Benchmarks</span>
+            <h3 class="font-display text-xl font-bold mt-0.5">Morphogenetic vs Legacy GPU</h3>
+            <p class="text-xs text-[var(--text-secondary)] mt-1">
+              By co-locating tensor weights inside a continuous fluid lattice, Synthoma eliminates PCIe memory bottlenecks.
+            </p>
+          </div>
+
+          <div class="space-y-3 font-mono-tech text-xs">
+            <div class="p-3.5 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+              <div class="flex justify-between mb-1">
+                <span>SYNTHOMA FLUID LATTICE</span>
+                <strong class="text-sky-400">0.18 ms latency</strong>
+              </div>
+              <div class="w-full h-2 rounded-full bg-black/30 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-sky-400 to-fuchsia-400 w-[96%]"></div>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+              <div class="flex justify-between mb-1">
+                <span>HYPERSCALER H200 CLUSTER</span>
+                <strong class="text-slate-400">4.60 ms latency</strong>
+              </div>
+              <div class="w-full h-2 rounded-full bg-black/30 overflow-hidden">
+                <div class="h-full bg-slate-500 w-[34%]"></div>
+              </div>
+            </div>
+          </div>
+
+          <button id="syncHeroToSdkBtn" class="tactile-btn w-full py-3 rounded-xl font-mono-tech text-xs font-bold">
+            ⚡ Sync Hero 3D Stage to Ferrofluid Crown
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 // INTERACTIVE EXASCALE CLUSTER ROI CALCULATOR -->
+    <section id="cluster-calc" class="hud-glass rounded-3xl p-6 sm:p-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-6 space-y-5">
+          <div class="text-xs font-mono-tech uppercase tracking-widest text-sky-400 font-bold">
+            04 // Telemetry &amp; Cost Configurator
+          </div>
+          <h2 class="font-display text-2xl sm:text-3xl font-bold tracking-tight">
+            Calculate your morphogenetic compute yield.
+          </h2>
+
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-mono-tech">
+              <label for="calcNodesSlider">ACTIVE FOUNDRY BLADES</label>
+              <span id="calcNodesDisplay" class="text-sky-400 font-bold">64 Blades (409,600 Nodes)</span>
+            </div>
+            <input id="calcNodesSlider" type="range" min="8" max="256" step="8" value="64" />
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <button data-workload="1.0" class="workload-btn tactile-btn py-2 rounded-xl font-mono-tech text-xs font-semibold">🧠 LLM Training</button>
+            <button data-workload="1.45" class="workload-btn tactile-btn tactile-btn-active py-2 rounded-xl font-mono-tech text-xs font-semibold">🌊 Fluid Physics</button>
+            <button data-workload="1.85" class="workload-btn tactile-btn py-2 rounded-xl font-mono-tech text-xs font-semibold">🧬 Protein Fold</button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono-tech">
+          <div class="p-5 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+            <div class="text-[11px] text-[var(--text-muted)] uppercase">Sustained Throughput</div>
+            <div id="calcPflopsOut" class="text-2xl sm:text-3xl font-bold text-sky-400 mt-1">9.48 EFLOPS</div>
+            <div class="text-[11px] text-[var(--text-secondary)] mt-1">Continuous optical interconnect</div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+            <div class="text-[11px] text-[var(--text-muted)] uppercase">Cryo Energy Reduction</div>
+            <div id="calcMwhOut" class="text-2xl sm:text-3xl font-bold text-emerald-400 mt-1">-68.4% MW</div>
+            <div class="text-[11px] text-[var(--text-secondary)] mt-1">Adiabatic reversible gates</div>
+          </div>
+
+          <div class="sm:col-span-2 p-6 rounded-2xl bg-[#05070e] text-white border border-sky-400/30 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="text-[11px] text-slate-400 uppercase">Estimated Annual Cloud Compute Savings</div>
+              <div id="calcDollarOut" class="text-3xl sm:text-4xl font-bold text-fuchsia-400 mt-1">$1,480,000 / yr</div>
+            </div>
+            <a href="#foundry-tiers" class="px-5 py-3 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-sans font-bold text-xs transition-all">
+              Reserve Rack Allocation &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 // FOUNDRY ALLOCATION TIERS -->
+    <section id="foundry-tiers" class="space-y-8">
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <div class="text-xs font-mono-tech uppercase tracking-widest text-sky-400 font-bold">
+          05 // Hardware &amp; Cloud Access
+        </div>
+        <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight">
+          Scale from a browser sandbox to a dedicated pod.
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="hud-glass rounded-3xl p-7 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex justify-between items-center font-mono-tech text-xs">
+              <span class="px-2.5 py-0.5 rounded bg-[var(--pill-bg)] font-bold">DEV SANDBOX</span>
+              <span class="text-emerald-400 font-bold">● Instant Access</span>
+            </div>
+            <h3 class="font-display text-xl font-bold">WebGPU Simulator</h3>
+            <div class="text-3xl font-bold font-mono-tech">$0 <span class="text-xs font-normal text-[var(--text-muted)]">/ forever</span></div>
+            <ul class="text-xs space-y-2.5 text-[var(--text-secondary)]">
+              <li>✓ Up to 64,000 local morphogenetic nodes</li>
+              <li>✓ Full TypeScript &amp; GLSL shader bindings</li>
+              <li>✓ Community preset &amp; topology library</li>
+            </ul>
+          </div>
+          <button data-tier="WebGPU Dev Sandbox" class="tier-select-btn tactile-btn w-full py-3 rounded-xl font-mono-tech text-xs font-bold">
+            Generate API Key
+          </button>
+        </div>
+
+        <div class="hud-glass rounded-3xl p-7 border-2 border-sky-400 relative flex flex-col justify-between space-y-6 transform md:-translate-y-2">
+          <span class="absolute -top-3 right-6 px-3 py-0.5 rounded-full bg-gradient-to-r from-sky-400 to-fuchsia-400 text-slate-950 font-mono-tech text-[10px] font-extrabold uppercase">
+            Most Popular Cluster
+          </span>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center font-mono-tech text-xs">
+              <span class="px-2.5 py-0.5 rounded bg-sky-500/20 text-sky-400 font-bold">dedicated BLADE</span>
+              <span class="text-sky-400 font-bold">150 PFLOPS</span>
+            </div>
+            <h3 class="font-display text-xl font-bold">Morphogenetic Pod X1</h3>
+            <div class="text-3xl font-bold font-mono-tech">$2,400 <span class="text-xs font-normal text-[var(--text-muted)]">/ month</span></div>
+            <ul class="text-xs space-y-2.5 text-[var(--text-secondary)]">
+              <li>✓ 8× Ferrofluid Tensor Processing Units</li>
+              <li>✓ 0.18 ms deterministic real-time streaming</li>
+              <li>✓ Dedicated 800GbE optical fabric interconnect</li>
+            </ul>
+          </div>
+          <button data-tier="Morphogenetic Pod X1" class="tier-select-btn w-full py-3 rounded-xl bg-gradient-to-r from-sky-400 via-indigo-400 to-fuchsia-400 text-slate-950 font-mono-tech text-xs font-extrabold shadow-lg shadow-sky-500/25 cursor-pointer">
+            Deploy Pod X1 &rarr;
+          </button>
+        </div>
+
+        <div class="hud-glass rounded-3xl p-7 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex justify-between items-center font-mono-tech text-xs">
+              <span class="px-2.5 py-0.5 rounded bg-[var(--pill-bg)] font-bold">EXASCALE</span>
+              <span class="text-fuchsia-400 font-bold">Custom SLA</span>
+            </div>
+            <h3 class="font-display text-xl font-bold">Sovereign Foundry</h3>
+            <div class="text-3xl font-bold font-mono-tech">Custom <span class="text-xs font-normal text-[var(--text-muted)]">/ rack</span></div>
+            <ul class="text-xs space-y-2.5 text-[var(--text-secondary)]">
+              <li>✓ On-premise cryogenic rack installation</li>
+              <li>✓ Air-gapped defence &amp; biotech compliance</li>
+              <li>✓ 24/7 field physicists &amp; kernel engineers</li>
+            </ul>
+          </div>
+          <button data-tier="Sovereign Foundry Rack" class="tier-select-btn tactile-btn w-full py-3 rounded-xl font-mono-tech text-xs font-bold">
+            Book Architecture Review
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[var(--border-hairline)] py-10 px-4 sm:px-8 text-xs font-mono-tech text-[var(--text-muted)]">
+    <div class="max-w-[1380px] mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2 text-[var(--text-primary)] font-bold">
+        <span class="w-5 h-5 rounded bg-sky-400 text-slate-950 flex items-center justify-center text-[10px]">◈</span>
+        <span>SYNTHOMA FOUNDRY INC. &copy; 2026 &middot; SAN FRANCISCO / ZÜRICH</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#hero-stage" class="hover:text-sky-400">Back to Full-Hero Stage &uarr;</a>
+        <a href="#acoustic-chamber" class="hover:text-sky-400">Levitation Chamber</a>
+        <a href="#spatial-sdk" class="hover:text-sky-400">SDK</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toastAlert" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl hud-glass border border-sky-400 font-mono-tech text-xs font-semibold text-[var(--text-primary)] shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    Action executed
+  </div>
+
+  <script>
+    window.onload = function () {
+      // =====================================================================
+      // 1. PROCEDURAL WEB AUDIO SYNTHESIZER (CHIMES & SHOCKWAVE SUB-BASS)
+      // =====================================================================
+      let audioCtx = null;
+      let audioOn = true;
+
+      function getAudioContext() {
+        if (!audioOn) return null;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+
+      function playSynthTone(freq = 440, dur = 0.14, type = 'sine', sweep = 1.35) {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * sweep, now + dur);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + dur + 0.02);
+      }
+
+      document.getElementById('audioToggleBtn').addEventListener('click', () => {
+        audioOn = !audioOn;
+        document.getElementById('audioIcon').textContent = audioOn ? '🔊' : '🔇';
+      });
+
+      // Toast helper
+      const toastAlert = document.getElementById('toastAlert');
+      let toastTimer = null;
+      function triggerToast(msg) {
+        toastAlert.textContent = msg;
+        toastAlert.classList.remove('translate-y-24', 'opacity-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toastAlert.classList.add('translate-y-24', 'opacity-0');
+        }, 2500);
+      }
+
+      // =====================================================================
+      // 2. SHOWCASE MODE & THEME SWITCHER
+      // =====================================================================
+      let isShowcaseMode = false;
+      const showcaseToggleBtn = document.getElementById('showcaseToggleBtn');
+      showcaseToggleBtn.addEventListener('click', () => {
+        isShowcaseMode = !isShowcaseMode;
+        document.body.classList.toggle('showcase-clean', isShowcaseMode);
+        showcaseToggleBtn.classList.toggle('tactile-btn-active', isShowcaseMode);
+        document.getElementById('showcaseBtnText').textContent = isShowcaseMode ? 'Exit Showcase' : 'Showcase Mode';
+        playSynthTone(isShowcaseMode ? 620 : 420, 0.12, 'triangle');
+        triggerToast(isShowcaseMode ? '🎥 Showcase Mode ON — Hero text hidden for clean video capture!' : '🎥 Showcase Mode OFF — Editorial overlay restored');
+      });
+
+      const htmlEl = document.documentElement;
+      document.getElementById('themeSwitchBtn').addEventListener('click', () => {
+        const cur = htmlEl.getAttribute('data-theme');
+        const next = cur === 'obsidian' ? 'alabaster' : 'obsidian';
+        htmlEl.setAttribute('data-theme', next);
+        document.getElementById('themeIcon').textContent = next === 'obsidian' ? '☀️' : '🌙';
+        document.getElementById('themeText').textContent = next === 'obsidian' ? 'Alabaster' : 'Obsidian';
+        playSynthTone(520, 0.1);
+      });
+
+      // =====================================================================
+      // 3. FULL-HERO (100vw x 100vh) THREE.JS MORPHOGENETIC SINGULARITY STAGE
+      // =====================================================================
+      const heroStage = document.getElementById('heroCanvasStage');
+      const scene = new THREE.Scene();
+
+      const getHeroSize = () => ({
+        w: Math.max(320, heroStage.clientWidth || window.innerWidth),
+        h: Math.max(320, heroStage.clientHeight || window.innerHeight)
+      });
+
+      const initSz = getHeroSize();
+      const camera = new THREE.PerspectiveCamera(50, initSz.w / initSz.h, 0.1, 500);
+      camera.position.set(0, 2.5, 29);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(initSz.w, initSz.h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      heroStage.appendChild(renderer.domElement);
+
+      // Lights for the Central Morphing Ferrofluid Core
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+      scene.add(ambientLight);
+
+      const pointLight1 = new THREE.PointLight(0x38bdf8, 3.2, 60);
+      pointLight1.position.set(12, 14, 14);
+      scene.add(pointLight1);
+
+      const pointLight2 = new THREE.PointLight(0xc084fc, 3.0, 60);
+      pointLight2.position.set(-14, -10, 12);
+      scene.add(pointLight2);
+
+      const pointLight3 = new THREE.PointLight(0xf43f5e, 2.4, 50);
+      pointLight3.position.set(0, 16, -12);
+      scene.add(pointLight3);
+
+      const universeGroup = new THREE.Group();
+      // Slightly offset core toward right on widescreen so editorial copy & core balance, while particles fill 100% of hero
+      universeGroup.position.x = initSz.w > 1024 ? 3.2 : 0;
+      scene.add(universeGroup);
+
+      // 3A. Central Morphing Ferrofluid Icosahedron Core
+      const coreGeo = new THREE.IcosahedronGeometry(4.2, 4);
+      const baseCorePositions = Float32Array.from(coreGeo.attributes.position.array);
+      const coreMat = new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        emissive: 0x1e1b4b,
+        emissiveIntensity: 0.55,
+        metalness: 0.88,
+        roughness: 0.16,
+        wireframe: false
+      });
+      const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+      universeGroup.add(coreMesh);
+
+      // Outer Glowing Wireframe Cage around Core
+      const cageGeo = new THREE.IcosahedronGeometry(4.85, 2);
+      const cageMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.22
+      });
+      const cageMesh = new THREE.Mesh(cageGeo, cageMat);
+      universeGroup.add(cageMesh);
+
+      // 3 Interlocking Orbital Energy Rings
+      const ringsGroup = new THREE.Group();
+      universeGroup.add(ringsGroup);
+      const ringSpecs = [
+        { r: 7.4, tube: 0.035, col: 0x38bdf8, rx: 1.1, ry: 0.4 },
+        { r: 9.6, tube: 0.03, col: 0xc084fc, rx: -0.7, ry: 1.2 },
+        { r: 12.2, tube: 0.025, col: 0xf43f5e, rx: 0.3, ry: -0.9 }
+      ];
+      ringSpecs.forEach((sp) => {
+        const rg = new THREE.TorusGeometry(sp.r, sp.tube, 12, 120);
+        const rm = new THREE.MeshBasicMaterial({ color: sp.col, transparent: true, opacity: 0.38 });
+        const mesh = new THREE.Mesh(rg, rm);
+        mesh.rotation.set(sp.rx, sp.ry, 0);
+        ringsGroup.add(mesh);
+      });
+
+      // 3B. 6,400 Full-Viewport Morphogenetic Particle Nodes
+      const PARTICLE_COUNT = 6400;
+      const pGeo = new THREE.BufferGeometry();
+      const pPositions = new Float32Array(PARTICLE_COUNT * 3);
+      const pTargets = new Float32Array(PARTICLE_COUNT * 3);
+      const pColors = new Float32Array(PARTICLE_COUNT * 3);
+      const pSeeds = new Float32Array(PARTICLE_COUNT);
+
+      // Soft circular glow sprite generated in memory
+      function makeParticleSprite() {
+        const c = document.createElement('canvas');
+        c.width = 64;
+        c.height = 64;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
+        g.addColorStop(0, 'rgba(255,255,255,1)');
+        g.addColorStop(0.4, 'rgba(56,189,248,0.85)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 64, 64);
+        return new THREE.CanvasTexture(c);
+      }
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        pSeeds[i] = Math.random() * Math.PI * 2;
+        pPositions[i * 3] = (Math.random() - 0.5) * 55;
+        pPositions[i * 3 + 1] = (Math.random() - 0.5) * 35;
+        pPositions[i * 3 + 2] = (Math.random() - 0.5) * 35;
+      }
+
+      // Compute Target Coordinates for the 4 Morphologies spanning the ENTIRE Hero Viewport
+      function computeMorphTargets(mode) {
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          const idx = i * 3;
+          const u = i / PARTICLE_COUNT;
+          const theta = i * 2.3999632; // Golden angle spiral
+
+          if (mode === 'vortex') {
+            // Wide logarithmic galaxy / singularity vortex spanning the full hero width & height
+            const radius = 2.8 + Math.pow(u, 0.72) * 26.0;
+            const armAngle = theta + radius * 0.38;
+            pTargets[idx] = Math.cos(armAngle) * radius * 1.25;
+            pTargets[idx + 1] = (Math.sin(theta * 3.0) * (1.2 + radius * 0.14)) + (u - 0.5) * 8.0;
+            pTargets[idx + 2] = Math.sin(armAngle) * radius * 0.85;
+          } else if (mode === 'crown') {
+            // Spherical Ferrofluid Standing-Wave Crown with radial spikes
+            const phi = Math.acos(1 - 2 * u);
+            const spike = 1.0 + 0.48 * Math.sin(phi * 10.0) * Math.cos(theta * 8.0);
+            const rad = (6.2 + (i % 5) * 3.4) * spike;
+            pTargets[idx] = rad * Math.sin(phi) * Math.cos(theta) * 1.25;
+            pTargets[idx + 1] = rad * Math.cos(phi);
+            pTargets[idx + 2] = rad * Math.sin(phi) * Math.sin(theta);
+          } else if (mode === 'helix') {
+            // Double-Strand Cybernetic DNA Helix spanning across the entire viewport
+            const strand = i % 2 === 0 ? 1 : -1;
+            const xSpan = (u - 0.5) * 48.0;
+            const twist = xSpan * 0.36 + (strand > 0 ? 0 : Math.PI);
+            const ringRadius = 6.8 + (i % 7) * 0.85;
+            pTargets[idx] = xSpan;
+            pTargets[idx + 1] = Math.cos(twist) * ringRadius;
+            pTargets[idx + 2] = Math.sin(twist) * ringRadius;
+          } else if (mode === 'lattice') {
+            // 3D Quantum Hyper-Grid filling the entire hero screen
+            const gx = (i % 40) - 19.5;
+            const gy = (Math.floor(i / 40) % 16) - 7.5;
+            const gz = Math.floor(i / 640) - 4.5;
+            pTargets[idx] = gx * 1.35;
+            pTargets[idx + 1] = gy * 1.35;
+            pTargets[idx + 2] = gz * 2.2;
+          }
+        }
+      }
+
+      let currentMorphMode = 'vortex';
+      computeMorphTargets('vortex');
+
+      function updateParticlePalette(hueShiftDeg = 0) {
+        const c1 = new THREE.Color().setHSL(((198 + hueShiftDeg) % 360) / 360, 0.95, 0.62);
+        const c2 = new THREE.Color().setHSL(((280 + hueShiftDeg) % 360) / 360, 0.90, 0.65);
+        const c3 = new THREE.Color().setHSL(((340 + hueShiftDeg) % 360) / 360, 0.92, 0.60);
+        const tmp = new THREE.Color();
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          const t = i / PARTICLE_COUNT;
+          if (t < 0.5) tmp.copy(c1).lerp(c2, t * 2);
+          else tmp.copy(c2).lerp(c3, (t - 0.5) * 2);
+          pColors[i * 3] = tmp.r;
+          pColors[i * 3 + 1] = tmp.g;
+          pColors[i * 3 + 2] = tmp.b;
+        }
+        pGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
+        pGeo.attributes.color.needsUpdate = true;
+      }
+
+      pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+      updateParticlePalette(0);
+
+      const pMat = new THREE.PointsMaterial({
+        size: 0.36,
+        map: makeParticleSprite(),
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.92,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+
+      const particleSystem = new THREE.Points(pGeo, pMat);
+      universeGroup.add(particleSystem);
+
+      // 3C. Raycast Cursor Attractor & Shockwave Detonation across the Whole Hero
+      const raycaster = new THREE.Raycaster();
+      const pointerNDC = new THREE.Vector2(0, 0);
+      const hitPlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(120, 80),
+        new THREE.MeshBasicMaterial({ visible: false })
+      );
+      scene.add(hitPlane);
+
+      const cursor3D = new THREE.Vector3(0, 0, 0);
+      let shockwaveIntensity = 0;
+      let turbulenceFactor = 2.4;
+      let cursorGravityStrength = 1.4;
+      let timeScale = 1.0;
+
+      window.addEventListener('mousemove', (e) => {
+        const rect = heroStage.getBoundingClientRect();
+        if (e.clientY <= rect.bottom) {
+          pointerNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          pointerNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          document.getElementById('cursorCoordHud').textContent =
+            `VEC(${pointerNDC.x.toFixed(2)}, ${pointerNDC.y.toFixed(2)})`;
+
+          raycaster.setFromCamera(pointerNDC, camera);
+          const hits = raycaster.intersectObject(hitPlane);
+          if (hits.length > 0) {
+            cursor3D.copy(hits[0].point).sub(universeGroup.position);
+            pointLight1.position.set(hits[0].point.x, hits[0].point.y, 10);
+          }
+        }
+      });
+
+      function detonateSingularityPulse() {
+        shockwaveIntensity = 2.6;
+        playSynthTone(130, 0.38, 'sawtooth', 0.45);
+        playSynthTone(580, 0.24, 'sine', 1.8);
+      }
+
+      heroStage.addEventListener('click', () => {
+        detonateSingularityPulse();
+      });
+
+      document.getElementById('pulseShockwaveBtn').addEventListener('click', () => {
+        detonateSingularityPulse();
+        triggerToast('💥 Singularity radial shockwave detonated across all 6,400 nodes');
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+          e.preventDefault();
+          detonateSingularityPulse();
+        }
+      });
+
+      // Time-Dilation & Wireframe Toggles
+      document.getElementById('timeWarpBtn').addEventListener('click', () => {
+        timeScale = timeScale === 1.0 ? 0.2 : 1.0;
+        document.getElementById('timeWarpState').textContent = timeScale.toFixed(1) + 'x';
+        playSynthTone(timeScale < 1 ? 260 : 540, 0.15);
+        triggerToast(timeScale < 1 ? '⏱️ 0.2x Bullet-Time Dilation Engaged' : '⏱️ 1.0x Real-Time Speed Restored');
+      });
+
+      document.getElementById('wireframeCoreBtn').addEventListener('click', () => {
+        coreMat.wireframe = !coreMat.wireframe;
+        document.getElementById('wireframeState').textContent = coreMat.wireframe ? 'ON' : 'OFF';
+        playSynthTone(640, 0.1);
+      });
+
+      // Morphology Preset Buttons
+      const morphTitles = {
+        vortex: '01 // SINGULARITY VORTEX',
+        crown: '02 // FERROFLUID CROWN',
+        helix: '03 // CYBERNETIC BIO-HELIX',
+        lattice: '04 // QUANTUM HYPER-GRID'
+      };
+
+      function switchMorphology(mode) {
+        currentMorphMode = mode;
+        computeMorphTargets(mode);
+        document.getElementById('hudTopologyName').textContent = morphTitles[mode];
+        document.querySelectorAll('.morph-mode-btn').forEach((b) => {
+          b.classList.toggle('tactile-btn-active', b.getAttribute('data-morph') === mode);
+        });
+        shockwaveIntensity = 1.1;
+        playSynthTone(480, 0.14, 'triangle', 1.4);
+      }
+
+      document.querySelectorAll('.morph-mode-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          switchMorphology(btn.getAttribute('data-morph'));
+        });
+      });
+
+      document.getElementById('syncHeroToSdkBtn').addEventListener('click', () => {
+        switchMorphology('crown');
+        document.getElementById('hero-stage').scrollIntoView({ behavior: 'smooth' });
+        triggerToast('⚡ Synced Full-Hero 3D Stage to Ferrofluid Crown topology');
+      });
+
+      // Dock Sliders
+      document.getElementById('turbSlider').addEventListener('input', (e) => {
+        turbulenceFactor = parseFloat(e.target.value);
+        document.getElementById('turbReadout').textContent = turbulenceFactor.toFixed(1) + 'x';
+        document.getElementById('statVorticityVal').textContent = turbulenceFactor.toFixed(2) + ' rad/s';
+      });
+
+      document.getElementById('gravSlider').addEventListener('input', (e) => {
+        const pct = parseInt(e.target.value, 10);
+        cursorGravityStrength = pct / 100;
+        document.getElementById('gravReadout').textContent = pct + '%';
+      });
+
+      document.getElementById('hueSlider').addEventListener('input', (e) => {
+        const deg = parseInt(e.target.value, 10);
+        document.getElementById('hueReadout').textContent = deg + '° Shift';
+        updateParticlePalette(deg);
+      });
+
+      // Responsive Full-Viewport Resize
+      function handleHeroResize() {
+        const sz = getHeroSize();
+        camera.aspect = sz.w / sz.h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(sz.w, sz.h);
+        universeGroup.position.x = sz.w > 1024 && !isShowcaseMode ? 3.2 : 0;
+      }
+      window.addEventListener('resize', handleHeroResize);
+
+      // Animation Loop for the Full-Hero 3D Scene
+      let clockTime = 0;
+      function animateHeroStage() {
+        requestAnimationFrame(animateHeroStage);
+        clockTime += 0.014 * timeScale;
+        shockwaveIntensity *= 0.92;
+
+        // Smooth camera parallax from cursor
+        camera.position.x += (pointerNDC.x * 3.5 - camera.position.x) * 0.05;
+        camera.position.y += (2.0 + pointerNDC.y * 2.5 - camera.position.y) * 0.05;
+        camera.lookAt(0, 0, 0);
+
+        // Morph Central Ferrofluid Icosahedron vertices in real time
+        const corePosAttr = coreGeo.attributes.position;
+        const cArr = corePosAttr.array;
+        for (let k = 0; k < cArr.length; k += 3) {
+          const bx = baseCorePositions[k];
+          const by = baseCorePositions[k + 1];
+          const bz = baseCorePositions[k + 2];
+          const len = Math.sqrt(bx * bx + by * by + bz * bz) || 1;
+          const nx = bx / len;
+          const ny = by / len;
+          const nz = bz / len;
+
+          const wave =
+            Math.sin(nx * 4.0 + clockTime * 2.2) *
+            Math.cos(ny * 4.0 - clockTime * 1.8) *
+            Math.sin(nz * 4.0 + clockTime * 1.5);
+
+          const displacement = 1.0 + (wave * 0.22 * turbulenceFactor) + shockwaveIntensity * 0.35;
+          cArr[k] = bx * displacement;
+          cArr[k + 1] = by * displacement;
+          cArr[k + 2] = bz * displacement;
+        }
+        corePosAttr.needsUpdate = true;
+        coreGeo.computeVertexNormals();
+
+        coreMesh.rotation.y = clockTime * 0.35;
+        coreMesh.rotation.x = Math.sin(clockTime * 0.25) * 0.3;
+        cageMesh.rotation.y = -clockTime * 0.2;
+        cageMesh.scale.setScalar(1 + shockwaveIntensity * 0.25);
+
+        ringsGroup.rotation.y = clockTime * 0.28;
+        ringsGroup.rotation.z = Math.sin(clockTime * 0.2) * 0.18;
+
+        // Advect all 6,400 Full-Hero Particles toward Target Morphology + Cursor Swirl + Shockwave
+        const posAttr = pGeo.attributes.position;
+        const pArr = posAttr.array;
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          const idx = i * 3;
+          const seed = pSeeds[i];
+
+          let tx = pTargets[idx];
+          let ty = pTargets[idx + 1];
+          let tz = pTargets[idx + 2];
+
+          // Harmonic breathing motion
+          tx += Math.sin(clockTime * 1.6 + seed) * 0.45 * turbulenceFactor;
+          ty += Math.cos(clockTime * 1.4 + seed * 1.3) * 0.45 * turbulenceFactor;
+
+          // Cursor Magnetohydrodynamic Swirl & Attraction
+          const dx = pArr[idx] - cursor3D.x;
+          const dy = pArr[idx + 1] - cursor3D.y;
+          const dz = pArr[idx + 2] - cursor3D.z;
+          const distSq = dx * dx + dy * dy + dz * dz + 0.1;
+
+          if (distSq < 95) {
+            const dist = Math.sqrt(distSq);
+            const pull = ((9.8 - dist) / 9.8) * cursorGravityStrength;
+            // Swirl tangentially around cursor + slight radial lift
+            tx += (-dy * 0.55 + (dx / dist) * shockwaveIntensity * 6.0) * pull;
+            ty += (dx * 0.55 + (dy / dist) * shockwaveIntensity * 6.0) * pull;
+            tz += Math.sin(dist - clockTime * 4.0) * 1.8 * pull;
+          }
+
+          // Radial shockwave burst from origin
+          if (shockwaveIntensity > 0.05) {
+            const rOrigin = Math.sqrt(tx * tx + ty * ty + tz * tz) || 1;
+            tx += (tx / rOrigin) * shockwaveIntensity * 5.5;
+            ty += (ty / rOrigin) * shockwaveIntensity * 5.5;
+            tz += (tz / rOrigin) * shockwaveIntensity * 5.5;
+          }
+
+          pArr[idx] += (tx - pArr[idx]) * 0.075;
+          pArr[idx + 1] += (ty - pArr[idx + 1]) * 0.075;
+          pArr[idx + 2] += (tz - pArr[idx + 2]) * 0.075;
+        }
+
+        posAttr.needsUpdate = true;
+        particleSystem.rotation.y = clockTime * 0.09;
+
+        renderer.render(scene, camera);
+      }
+      animateHeroStage();
+
+      // =====================================================================
+      // 4. SECTION 02: 2D ULTRASONIC STANDING-WAVE LEVITATION CHAMBER
+      // =====================================================================
+      const waveCanvas = document.getElementById('standingWaveCanvas');
+      const wCtx = waveCanvas.getContext('2d');
+      let harmonicN = 5;
+      let acousticGain = 0.85;
+      let phaseDriftSpeed = 1.8;
+      let wavePhase = 0;
+
+      const droplets = Array.from({ length: 18 }, (_, i) => ({
+        xRatio: (i + 0.5) / 18,
+        yOffset: (Math.random() - 0.5) * 40,
+        vy: 0,
+        radius: 4 + (i % 3) * 1.8,
+        hue: 190 + (i * 12) % 140
+      }));
+
+      document.getElementById('harmonicNodesSlider').addEventListener('input', (e) => {
+        harmonicN = parseInt(e.target.value, 10);
+        document.getElementById('harmonicNodesVal').textContent = `N = ${harmonicN}`;
+        document.getElementById('chamberNodeReadout').textContent = `${harmonicN} HARMONICS`;
+        playSynthTone(300 + harmonicN * 45, 0.09);
+      });
+
+      document.getElementById('carrierAmpSlider').addEventListener('input', (e) => {
+        const pct = parseInt(e.target.value, 10);
+        acousticGain = pct / 100;
+        document.getElementById('carrierAmpVal').textContent = pct + '%';
+        document.getElementById('chamberPaReadout').textContent = (148 + pct * 0.19).toFixed(1) + ' dB SPL';
+      });
+
+      document.getElementById('phaseDriftSlider').addEventListener('input', (e) => {
+        phaseDriftSpeed = parseFloat(e.target.value);
+        document.getElementById('phaseDriftVal').textContent = phaseDriftSpeed.toFixed(1) + ' m/s';
+      });
+
+      function spawnChamberDroplet(xNorm, yOffsetPx = 0) {
+        droplets.push({
+          xRatio: Math.max(0.04, Math.min(0.96, xNorm)),
+          yOffset: yOffsetPx,
+          vy: 0,
+          radius: 4.5 + Math.random() * 3,
+          hue: 185 + Math.random() * 150
+        });
+        if (droplets.length > 42) droplets.shift();
+      }
+
+      waveCanvas.addEventListener('click', (e) => {
+        const rect = waveCanvas.getBoundingClientRect();
+        const xNorm = (e.clientX - rect.left) / rect.width;
+        const yOff = (e.clientY - rect.top) - rect.height / 2;
+        spawnChamberDroplet(xNorm, yOff);
+        playSynthTone(580, 0.1, 'sine');
+      });
+
+      document.getElementById('injectDropletsBtn').addEventListener('click', () => {
+        for (let i = 0; i < 12; i++) {
+          spawnChamberDroplet(Math.random(), (Math.random() - 0.5) * 90);
+        }
+        playSynthTone(660, 0.14, 'triangle');
+        triggerToast('✨ Injected 12 quantum droplets into standing-wave nodes');
+      });
+
+      function renderStandingWaveChamber() {
+        requestAnimationFrame(renderStandingWaveChamber);
+        const w = waveCanvas.clientWidth || 720;
+        const h = waveCanvas.clientHeight || 340;
+        if (waveCanvas.width !== w || waveCanvas.height !== h) {
+          waveCanvas.width = w;
+          waveCanvas.height = h;
+        }
+
+        wCtx.clearRect(0, 0, w, h);
+        wavePhase += 0.025 * phaseDriftSpeed;
+        const midY = h / 2;
+        const ampPx = h * 0.28 * acousticGain;
+
+        // Draw Forward & Backward Interference Waves
+        for (let pass = 0; pass < 2; pass++) {
+          wCtx.strokeStyle = pass === 0 ? 'rgba(56, 189, 248, 0.45)' : 'rgba(192, 132, 252, 0.45)';
+          wCtx.lineWidth = 2;
+          wCtx.beginPath();
+          for (let x = 0; x <= w; x += 4) {
+            const k = (x / w) * Math.PI * harmonicN;
+            const sign = pass === 0 ? 1 : -1;
+            const y = midY + Math.sin(k + sign * wavePhase) * Math.cos(wavePhase * 2.0) * ampPx;
+            if (x === 0) wCtx.moveTo(x, y);
+            else wCtx.lineTo(x, y);
+          }
+          wCtx.stroke();
+        }
+
+        // Draw Standing Wave Envelope
+        wCtx.strokeStyle = '#38bdf8';
+        wCtx.lineWidth = 2.6;
+        wCtx.beginPath();
+        for (let x = 0; x <= w; x += 3) {
+          const k = (x / w) * Math.PI * harmonicN + wavePhase * 0.5;
+          const y = midY + Math.sin(k) * ampPx * Math.sin(wavePhase * 3.0);
+          if (x === 0) wCtx.moveTo(x, y);
+          else wCtx.lineTo(x, y);
+        }
+        wCtx.stroke();
+
+        // Update & Render Acoustic Levitating Droplets trapped at nodes
+        for (let i = 0; i < droplets.length; i++) {
+          const d = droplets[i];
+          d.xRatio = (d.xRatio + 0.0007 * phaseDriftSpeed) % 1.0;
+          const px = d.xRatio * w;
+          const k = d.xRatio * Math.PI * harmonicN + wavePhase * 0.5;
+          const nodeTargetY = Math.cos(k) * 14 * acousticGain;
+
+          // Spring force pulling droplet toward acoustic pressure node
+          d.vy += (nodeTargetY - d.yOffset) * 0.08;
+          d.vy *= 0.88;
+          d.yOffset += d.vy;
+
+          const py = midY + d.yOffset;
+          wCtx.fillStyle = `hsl(${d.hue}, 92%, 65%)`;
+          wCtx.beginPath();
+          wCtx.arc(px, py, d.radius, 0, Math.PI * 2);
+          wCtx.fill();
+
+          wCtx.strokeStyle = 'rgba(255,255,255,0.55)';
+          wCtx.lineWidth = 1;
+          wCtx.stroke();
+        }
+      }
+      renderStandingWaveChamber();
+
+      // =====================================================================
+      // 5. SECTION 03 & 04: SDK CODE TABS & CLUSTER ROI CALCULATOR
+      // =====================================================================
+      const sdkTemplates = {
+        ts: `<span class="text-sky-400">import</span> { MorphField, SingularityCore } <span class="text-sky-400">from</span> <span class="text-amber-300">'@synthoma/spatial-sdk'</span>;\n\n<span class="text-slate-500">// Initialize 6,400-node full-viewport ferrofluid singularity</span>\n<span class="text-sky-400">const</span> field = <span class="text-sky-400">await</span> MorphField.<span class="text-emerald-300">boot</span>({ nodes: <span class="text-fuchsia-300">6400</span>, precision: <span class="text-amber-300">'fp16'</span> });\n\nfield.<span class="text-emerald-300">onCursorAttractor</span>((vec3, curl) =&gt; {\n  <span class="text-sky-400">return</span> SingularityCore.<span class="text-emerald-300">advect</span>(vec3, {\n    topology: <span class="text-amber-300">'ferrofluid-crown'</span>,\n    vorticity: curl * <span class="text-fuchsia-300">2.4</span>,\n    harmonicLock: <span class="text-fuchsia-300">true</span>\n  });\n});`,
+        glsl: `<span class="text-fuchsia-400">#version 460 core</span>\n<span class="text-sky-400">layout</span>(local_size_x = <span class="text-amber-300">256</span>) <span class="text-sky-400">in</span>;\n\n<span class="text-sky-400">void</span> <span class="text-emerald-300">main</span>() {\n  uint id = gl_GlobalInvocationID.x;\n  vec3 pos = nodes[id].xyz;\n  vec3 swirl = cross(normalize(pos - uCursor), vec3(<span class="text-amber-300">0.0</span>, <span class="text-amber-300">0.0</span>, <span class="text-amber-300">1.0</span>));\n  nodes[id].xyz += mix(swirl, targetMorph[id], <span class="text-amber-300">0.075</span>);\n}`,
+        rust: `<span class="text-sky-400">use</span> synthoma_hal::{FerroTensor, PhaseLock};\n\n<span class="text-fuchsia-400">#[kernel::morphogenetic]</span>\n<span class="text-sky-400">pub fn</span> <span class="text-emerald-300">solve_singularity</span>(mesh: &amp;<span class="text-sky-400">mut</span> FerroTensor&lt;<span class="text-amber-300">6400</span>&gt;, dt: f32) {\n    mesh.<span class="text-emerald-300">apply_verlet_curl</span>(dt, PhaseLock::Harmonic5);\n    mesh.<span class="text-emerald-300">commit_optical_bus</span>();\n}`
+      };
+
+      const sdkPreBlock = document.getElementById('sdkPreBlock');
+      document.querySelectorAll('.sdk-tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sdk-tab-btn').forEach((b) => b.classList.remove('tactile-btn-active'));
+          btn.classList.add('tactile-btn-active');
+          sdkPreBlock.innerHTML = sdkTemplates[btn.getAttribute('data-sdk')];
+          playSynthTone(500, 0.08);
+        });
+      });
+
+      document.getElementById('copySdkCodeBtn').addEventListener('click', () => {
+        if (navigator.clipboard) navigator.clipboard.writeText(sdkPreBlock.innerText).catch(() => {});
+        triggerToast('📋 Copied Synthoma SDK snippet to clipboard');
+        playSynthTone(680, 0.1);
+      });
+
+      // Calculator
+      const calcNodesSlider = document.getElementById('calcNodesSlider');
+      let workloadMult = 1.45;
+
+      function updateClusterCalculator() {
+        const blades = parseInt(calcNodesSlider.value, 10);
+        const totalNodes = blades * 6400;
+        document.getElementById('calcNodesDisplay').textContent =
+          `${blades} Blades (${totalNodes.toLocaleString()} Nodes)`;
+
+        const eflops = (blades * 0.102 * workloadMult).toFixed(2);
+        const savings = Math.round(blades * 15950 * workloadMult);
+
+        document.getElementById('calcPflopsOut').textContent = `${eflops} EFLOPS`;
+        document.getElementById('calcDollarOut').textContent = `$${savings.toLocaleString()} / yr`;
+      }
+
+      calcNodesSlider.addEventListener('input', updateClusterCalculator);
+      document.querySelectorAll('.workload-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.workload-btn').forEach((b) => b.classList.remove('tactile-btn-active'));
+          btn.classList.add('tactile-btn-active');
+          workloadMult = parseFloat(btn.getAttribute('data-workload'));
+          updateClusterCalculator();
+          playSynthTone(520, 0.08);
+        });
+      });
+
+      document.querySelectorAll('.tier-select-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const tier = btn.getAttribute('data-tier');
+          playSynthTone(640, 0.12);
+          triggerToast(`✓ Reserved ${tier} — provisioning token ready`);
+        });
+      });
+    };
+  </script>
+</body>
+</html>

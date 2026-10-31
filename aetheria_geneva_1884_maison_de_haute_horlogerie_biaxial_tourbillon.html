@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="vault">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AETHERIA GENEVA 1884 — Maison de Haute Horlogerie &amp; Biaxial Tourbillon</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    :root[data-theme="vault"] {
+      --bg-primary: #060605;
+      --bg-secondary: #0d0c0a;
+      --bg-hud: rgba(12, 11, 9, 0.78);
+      --bg-card: rgba(18, 16, 13, 0.78);
+      --text-primary: #f6f2eb;
+      --text-secondary: #b5aca0;
+      --text-muted: #787066;
+      --border-hairline: rgba(212, 175, 55, 0.16);
+      --border-strong: rgba(212, 175, 55, 0.48);
+      --accent-gold: #d4af37;
+      --accent-rose: #e5a97c;
+      --accent-ruby: #e11d48;
+      --accent-steel: #38bdf8;
+      --pill-bg: rgba(212, 175, 55, 0.07);
+    }
+
+    :root[data-theme="champagne"] {
+      --bg-primary: #f5f0e6;
+      --bg-secondary: #eae2d3;
+      --bg-hud: rgba(248, 244, 235, 0.85);
+      --bg-card: rgba(255, 252, 245, 0.88);
+      --text-primary: #14120f;
+      --text-secondary: #4a443c;
+      --text-muted: #7c7367;
+      --border-hairline: rgba(138, 102, 33, 0.18);
+      --border-strong: rgba(180, 136, 40, 0.55);
+      --accent-gold: #9e7618;
+      --accent-rose: #b45309;
+      --accent-ruby: #be123c;
+      --accent-steel: #0284c7;
+      --pill-bg: rgba(138, 102, 33, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .font-serif-luxury {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+
+    .font-mono-swiss {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Horological Glass & Guilloche Surfaces */
+    .luxury-glass {
+      background: var(--bg-hud);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid var(--border-hairline);
+      box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.72);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .luxury-glass:hover {
+      border-color: var(--border-strong);
+    }
+
+    .crown-btn {
+      background: var(--pill-bg);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .crown-btn:hover {
+      border-color: var(--accent-gold);
+      transform: translateY(-1px);
+    }
+
+    .crown-btn-active {
+      background: linear-gradient(135deg, #e5c158, #c59237) !important;
+      color: #090806 !important;
+      border-color: #f3d478 !important;
+      font-weight: 600;
+      box-shadow: 0 0 26px rgba(212, 175, 55, 0.42);
+    }
+
+    /* Custom Precision Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(212, 175, 55, 0.25);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #d4af37;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.9);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.22);
+    }
+
+    /* Full-Viewport 3D Horological Hero Stage */
+    #calibreHeroStage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    #calibreHeroStage canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      outline: none;
+    }
+
+    /* Radial Horological Vignette */
+    .vault-vignette {
+      background: radial-gradient(circle at 58% 48%, transparent 22%, rgba(6, 6, 5, 0.52) 72%, rgba(6, 6, 5, 0.92) 100%);
+    }
+
+    :root[data-theme="champagne"] .vault-vignette {
+      background: radial-gradient(circle at 58% 48%, transparent 25%, rgba(245, 240, 230, 0.45) 75%, rgba(245, 240, 230, 0.92) 100%);
+    }
+
+    /* Showcase Mode hides text overlays for pure full-bleed 3D Twitter screen capture */
+    body.showcase-clean .hero-editorial-overlay {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+      pointer-events: none;
+    }
+
+    .hero-editorial-overlay {
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes tickerGeneva {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .geneva-marquee {
+      display: flex;
+      width: max-content;
+      animation: tickerGeneva 34s linear infinite;
+    }
+  </style>
+</head>
+<body class="selection:bg-[#d4af37] selection:text-stone-950">
+
+  <!-- ===================================================================== -->
+  <!-- FLOATING SWISS HAUTE HORLOGERIE NAVBAR (OVERLAYS FULL-BLEED 3D HERO)  -->
+  <!-- ===================================================================== -->
+  <header class="fixed top-3 left-0 right-0 z-50 px-4 sm:px-8 max-w-[1440px] mx-auto pointer-events-none">
+    <nav class="luxury-glass rounded-2xl px-4 sm:px-6 py-2.5 flex items-center justify-between pointer-events-auto">
+      <!-- Maison Crest & Brand -->
+      <a href="#hero-calibre" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f3d478] via-[#d4af37] to-[#9a6f18] flex items-center justify-center text-stone-950 font-serif-luxury font-bold text-lg shadow-lg shadow-amber-500/20 group-hover:rotate-90 transition-transform duration-500">
+          ⚙
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-serif-luxury font-bold text-lg sm:text-xl tracking-wider uppercase">AETHERIA</span>
+            <span class="font-mono-swiss text-[9px] uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-[#d4af37] border border-amber-500/30">GENÈVE 1884</span>
+          </div>
+          <span class="font-mono-swiss text-[9px] tracking-widest uppercase text-[var(--text-muted)] hidden sm:block">Calibre AET-09 &middot; Biaxial Celestial Tourbillon</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="hidden xl:flex items-center gap-7 text-[11px] font-mono-swiss uppercase tracking-widest text-[var(--text-secondary)]">
+        <a href="#hero-calibre" class="hover:text-[#d4af37] transition-colors">I. 3D Calibre</a>
+        <a href="#vibrograph-lab" class="hover:text-[#d4af37] transition-colors">II. Escapement Lab</a>
+        <a href="#complications-bento" class="hover:text-[#d4af37] transition-colors">III. Minute Repeater</a>
+        <a href="#bespoke-atelier" class="hover:text-[#d4af37] transition-colors">IV. Bespoke Atelier</a>
+      </div>
+
+      <!-- Right Utility Controls -->
+      <div class="flex items-center gap-2">
+        <button id="showcaseModeBtn" class="crown-btn px-3 py-1.5 rounded-xl text-xs font-mono-swiss font-medium flex items-center gap-1.5" title="Hide editorial overlays to capture pure 3D mechanical movement for Twitter/X">
+          <span>🎥</span>
+          <span id="showcaseLabel" class="hidden sm:inline">Showcase Mode</span>
+        </button>
+        <button id="chimeStrikeTopBtn" class="crown-btn px-3 py-1.5 rounded-xl text-xs font-mono-swiss font-medium flex items-center gap-1.5 text-[#d4af37]" title="Strike Cathedral Minute Repeater Gongs">
+          <span>🔔</span>
+          <span class="hidden md:inline">Strike Chime</span>
+        </button>
+        <button id="themeToggleBtn" class="crown-btn px-2.5 py-1.5 rounded-xl text-xs font-mono-swiss" title="Switch Obsidian Vault / Champagne Dial Theme">
+          <span id="themeIcon">☀️</span>
+        </button>
+        <button id="tickAudioBtn" class="crown-btn p-2 rounded-xl text-xs font-mono-swiss" title="Toggle 28,800 vph Mechanical Escapement Audio">
+          <span id="tickAudioIcon">🔊</span>
+        </button>
+        <a href="#bespoke-atelier" class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#f3d478] via-[#d4af37] to-[#b8860b] text-stone-950 font-semibold text-xs tracking-wider uppercase shadow-lg shadow-amber-500/20 hover:brightness-110 transition-all">
+          Commission &rarr;
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- I // FULL-VIEWPORT (100vw × 100vh) INTERACTIVE 3D HOROLOGICAL HERO    -->
+  <!-- ===================================================================== -->
+  <section id="hero-calibre" class="relative w-screen min-h-screen h-screen overflow-hidden flex flex-col justify-between pt-20 pb-5 px-4 sm:px-8 select-none">
+
+    <!-- FULL-HERO 3D MECHANICAL TOURBILLON & EXPLODED CALIBRE CANVAS -->
+    <div id="calibreHeroStage" class="cursor-grab active:cursor-grabbing" title="Move cursor or drag to orbit the 3D Biaxial Tourbillon • Scroll or use the dock below to explode 412 mechanical components"></div>
+
+    <!-- Subtle Vignette -->
+    <div class="vault-vignette absolute inset-0 z-[2] pointer-events-none"></div>
+
+    <!-- TOP CHRONOMETER TELEMETRY STRIP -->
+    <div class="relative z-10 max-w-[1440px] w-full mx-auto flex flex-wrap items-center justify-between gap-2 pt-2 pointer-events-none font-mono-swiss text-[11px]">
+      <div class="luxury-glass px-3.5 py-1.5 rounded-xl flex items-center gap-3 pointer-events-auto">
+        <span class="w-2 h-2 rounded-full bg-[#d4af37] animate-ping"></span>
+        <span class="text-[var(--text-secondary)]">POINÇON DE GENÈVE: <strong class="text-[#d4af37]">CALIBRE AET-09 LIVE</strong></span>
+        <span class="text-[var(--text-muted)] hidden sm:inline">|</span>
+        <span id="liveBeatReadout" class="text-[var(--text-primary)] hidden sm:inline">4.0 Hz &middot; 28,800 VPH</span>
+      </div>
+
+      <div class="luxury-glass px-3.5 py-1.5 rounded-xl hidden md:flex items-center gap-4 pointer-events-auto">
+        <span>MAINSPRING TORQUE: <strong id="hudPowerReserve" class="text-emerald-400">78.4 HRS (98%)</strong></span>
+        <span class="text-[var(--text-muted)]">|</span>
+        <span>AMPLITUDE: <strong id="hudAmplitude" class="text-[#d4af37]">294° &middot; +0.2s/d</strong></span>
+      </div>
+    </div>
+
+    <!-- CENTER OVERLAID EDITORIAL CONTENT (Hides cleanly in Showcase Mode) -->
+    <div class="hero-editorial-overlay relative z-10 max-w-[1440px] w-full mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-center pointer-events-none">
+      <div class="lg:col-span-6 space-y-5 text-left">
+        <div class="inline-flex items-center gap-2.5 px-3.5 py-1 rounded-full luxury-glass text-[11px] font-mono-swiss pointer-events-auto">
+          <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-[#d4af37] font-bold text-[10px]">PIÈCE UNIQUE N° 01/12</span>
+          <span class="text-[var(--text-secondary)]">Interactive 3D Exploded Mechanical Architecture</span>
+        </div>
+
+        <h1 class="font-serif-luxury text-5xl sm:text-6xl xl:text-[4.65rem] font-semibold tracking-tight leading-[0.96]">
+          Gravity tamed in <span class="italic font-normal text-[#d4af37]">412 hand-beveled</span> components.
+        </h1>
+
+        <p class="text-sm sm:text-base text-[var(--text-secondary)] max-w-xl leading-relaxed font-light">
+          Inspect the entire <strong>Calibre AET-09 Biaxial Flying Tourbillon</strong> suspended across your viewport. Drag the <strong>Exploded Assembly Slider</strong> below to separate the sapphire dial,skeletonized bridges, coaxial gear train, and ruby escapement in real time.
+        </p>
+
+        <!-- Primary Interactive Hero Triggers -->
+        <div class="flex flex-wrap items-center gap-3 pt-1 pointer-events-auto">
+          <button id="heroExplodeToggleBtn" class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#f3d478] via-[#d4af37] to-[#b8860b] text-stone-950 font-semibold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-amber-500/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+            <span>🔩 Toggle Exploded Calibre</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-stone-950/20 font-mono-swiss text-[10px]">E</kbd>
+          </button>
+
+          <button id="windBarrelBtn" class="crown-btn luxury-glass px-4 py-3.5 rounded-2xl font-mono-swiss text-xs font-medium flex items-center gap-2">
+            <span>⚙️ Wind Mainspring</span>
+            <span id="windReserveBadge" class="text-[#d4af37] font-bold">98%</span>
+          </button>
+
+          <button id="chronoTriggerBtn" class="crown-btn luxury-glass px-4 py-3.5 rounded-2xl font-mono-swiss text-xs font-medium flex items-center gap-2">
+            <span>⏱️ Flyback Chrono: <strong id="chronoStatusText" class="text-emerald-400">RUN</strong></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Floating Horological Spec Card (Desktop) -->
+      <div class="lg:col-span-6 hidden lg:flex justify-end">
+        <div class="luxury-glass rounded-3xl p-5 w-80 space-y-4 pointer-events-auto">
+          <div class="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3">
+            <span class="font-mono-swiss text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">Micro-Mechanical Inspector</span>
+            <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-mono-swiss text-[10px] font-semibold">48 RUBY JEWELS</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5 font-mono-swiss">
+            <div class="p-3 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+              <div class="text-[9px] text-[var(--text-muted)] uppercase">INNER CAGE AXIS</div>
+              <div id="statInnerCage" class="text-base font-bold text-[#d4af37] mt-0.5">60.0s / rev</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+              <div class="text-[9px] text-[var(--text-muted)] uppercase">OUTER GIMBAL</div>
+              <div id="statOuterCage" class="text-base font-bold text-sky-400 mt-0.5">30.0s / rev</div>
+            </div>
+          </div>
+          <div class="text-[11px] text-[var(--text-secondary)] leading-relaxed flex items-center justify-between pt-1">
+            <span>ACTIVE LAYER FOCUS:</span>
+            <strong id="activeLayerTag" class="font-mono-swiss text-[#d4af37]">ASSEMBLED WATCH</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM FULL-HERO HOROLOGICAL WORKBENCH DOCK -->
+    <div class="relative z-10 max-w-[1440px] w-full mx-auto pointer-events-auto">
+      <div class="luxury-glass rounded-3xl p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+        <!-- 4 Camera & Inspection View Modes -->
+        <div class="lg:col-span-5 grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button data-cam="dial" class="cam-preset-btn crown-btn crown-btn-active py-2.5 px-3 rounded-2xl text-xs font-mono-swiss text-center flex flex-col items-center gap-0.5">
+            <span>⌚ 01. Dial Face</span>
+            <span class="text-[9px] opacity-75">Grand Feu View</span>
+          </button>
+          <button data-cam="exploded" class="cam-preset-btn crown-btn py-2.5 px-3 rounded-2xl text-xs font-mono-swiss text-center flex flex-col items-center gap-0.5">
+            <span>🔩 02. Exploded</span>
+            <span class="text-[9px] opacity-75">5-Layer Axial</span>
+          </button>
+          <button data-cam="macro" class="cam-preset-btn crown-btn py-2.5 px-3 rounded-2xl text-xs font-mono-swiss text-center flex flex-col items-center gap-0.5">
+            <span>🔬 03. Loupe 10×</span>
+            <span class="text-[9px] opacity-75">Tourbillon Cage</span>
+          </button>
+          <button data-cam="caseback" class="cam-preset-btn crown-btn py-2.5 px-3 rounded-2xl text-xs font-mono-swiss text-center flex flex-col items-center gap-0.5">
+            <span>🔄 04. Caseback</span>
+            <span class="text-[9px] opacity-75"> Bridges &amp; Rubies</span>
+          </button>
+        </div>
+
+        <!-- Real-Time Exploded Calibre, Escapement Frequency & Case Alloy Controls -->
+        <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3 px-1 font-mono-swiss text-xs items-center">
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-[var(--text-secondary)]">EXPLODE CALIBRE</span>
+              <span id="explodePctReadout" class="text-[#d4af37] font-bold">0% (Sealed)</span>
+            </div>
+            <input id="explodeSlider" type="range" min="0" max="100" step="1" value="0" />
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-[var(--text-secondary)]">BEAT FREQUENCY</span>
+              <span id="freqHzReadout" class="text-sky-400 font-bold">4.0 Hz (28.8k)</span>
+            </div>
+            <input id="freqSlider" type="range" min="2.5" max="10.0" step="0.5" value="4.0" />
+          </div>
+
+          <div>
+            <div class="text-[10px] text-[var(--text-secondary)] mb-1 flex justify-between">
+              <span>PRECIOUS ALLOY</span>
+              <span id="alloyNameLabel" class="text-[#d4af37] font-bold">18k Rose Gold</span>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button data-alloy="rosegold" class="alloy-btn crown-btn crown-btn-active py-1 rounded-lg text-[10px]">Rose</button>
+              <button data-alloy="platinum" class="alloy-btn crown-btn py-1 rounded-lg text-[10px]">Plat 950</button>
+              <button data-alloy="sapphire" class="alloy-btn crown-btn py-1 rounded-lg text-[10px]">Sapphire</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- GENEVA SEAL SPECIFICATION MARQUEE                                     -->
+  <!-- ===================================================================== -->
+  <div class="border-y border-[var(--border-hairline)] bg-[var(--bg-secondary)] py-3.5 overflow-hidden">
+    <div class="geneva-marquee flex items-center gap-12 font-mono-swiss text-[11px] uppercase tracking-widest text-[var(--text-muted)]">
+      <span>✦ CALIBRE AET-09 BIAXIAL FLYING TOURBILLON</span>
+      <span>◈ 412 HAND-CHAMFERED ANGLAGE COMPONENTS</span>
+      <span>❖ SILICON SWISS LEVER ESCAPEMENT &middot; 28,800 VPH</span>
+      <span>▲ CATHEDRAL GONG MINUTE REPEATER</span>
+      <span>⬡ PERPETUAL CELESTIAL EQUATION OF TIME</span>
+      <span>✦ CALIBRE AET-09 BIAXIAL FLYING TOURBILLON</span>
+      <span>◈ 412 HAND-CHAMFERED ANGLAGE COMPONENTS</span>
+      <span>❖ SILICON SWISS LEVER ESCAPEMENT &middot; 28,800 VPH</span>
+      <span>▲ CATHEDRAL GONG MINUTE REPEATER</span>
+      <span>⬡ PERPETUAL CELESTIAL EQUATION OF TIME</span>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- BELOW-THE-FOLD HAUTE HORLOGERIE SECTIONS                              -->
+  <!-- ===================================================================== -->
+  <main class="max-w-[1380px] mx-auto px-4 sm:px-8 py-24 space-y-28">
+
+    <!-- II // INTERACTIVE 2D SWISS LEVER ESCAPEMENT & VIBROGRAPH CHRONOMETER LAB -->
+    <section id="vibrograph-lab" class="space-y-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--border-hairline)] pb-6">
+        <div class="space-y-2 max-w-2xl">
+          <div class="text-xs font-mono-swiss uppercase tracking-widest text-[#d4af37] font-semibold">
+            II // Isochronism &amp; Escapement Kinematics
+          </div>
+          <h2 class="font-serif-luxury text-4xl sm:text-5xl font-semibold tracking-tight">
+            Interactive Swiss Lever Escapement &amp; Acoustic Vibrograph.
+          </h2>
+        </div>
+        <p class="text-sm text-[var(--text-secondary)] max-w-md">
+          Regulate the hairspring stiffness and mainspring barrel torque below to observe the ruby pallet fork locking and unlocking the 15-tooth silicon escape wheel at sub-millisecond precision.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <!-- 2D Escapement & Acoustic Vibrograph Canvas -->
+        <div class="lg:col-span-8 rounded-3xl bg-[#080706] border border-[var(--border-strong)] overflow-hidden flex flex-col justify-between shadow-2xl">
+          <div class="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-2 font-mono-swiss text-xs text-stone-300 bg-black/50">
+            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> SWISS LEVER PALLET FORK &amp; HAIRSPRING OSCILLATOR</span>
+            <div class="flex items-center gap-4">
+              <span>DEVIATION: <strong id="vibroRateReadout" class="text-emerald-400">+0.1 s/day</strong></span>
+              <span>BEAT ERROR: <strong id="vibroBeatError" class="text-[#d4af37]">0.0 ms</strong></span>
+            </div>
+          </div>
+          <canvas id="escapementCanvas" class="w-full h-[350px] block cursor-pointer" title="Click inside the escapement lab to impart a mechanical balance shock test"></canvas>
+        </div>
+
+        <!-- Chronometer Regulation Bench Controls -->
+        <div class="lg:col-span-4 luxury-glass rounded-3xl p-6 flex flex-col justify-between space-y-6">
+          <div class="space-y-5">
+            <h3 class="font-serif-luxury text-2xl font-semibold">Chronometer Regulator</h3>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-swiss">
+                <label for="torqueSlider">MAINSPRING BARREL TORQUE</label>
+                <span id="torqueValLabel" class="text-[#d4af37] font-bold">100% Optimal</span>
+              </div>
+              <input id="torqueSlider" type="range" min="40" max="150" step="5" value="100" />
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-swiss">
+                <label for="springTensionSlider">BREGUET OVERCOIL TENSION</label>
+                <span id="springTensionLabel" class="text-sky-400 font-bold">295° Amplitude</span>
+              </div>
+              <input id="springTensionSlider" type="range" min="210" max="330" step="5" value="295" />
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs font-mono-swiss">
+                <label for="fineRegulatorSlider">MICROMETER SWAN-NECK TRIM</label>
+                <span id="fineRegulatorLabel" class="text-emerald-400 font-bold">+0.1 s/d (COSC)</span>
+              </div>
+              <input id="fineRegulatorSlider" type="range" min="-5.0" max="5.0" step="0.1" value="0.1" />
+            </div>
+
+            <button id="shockTestBtn" class="crown-btn w-full py-3 rounded-xl font-mono-swiss text-xs font-semibold">
+              💥 Trigger 5,000G Incabloc Shock Test
+            </button>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] font-mono-swiss text-xs space-y-1">
+            <div class="text-[10px] text-[var(--text-muted)] uppercase">COSC Master Chronometer Status</div>
+            <div id="coscStatusBanner" class="text-lg font-bold text-emerald-400">PASSED &middot; GENEVA SEAL</div>
+            <div class="text-[11px] text-[var(--text-secondary)]">Click directly on the balance wheel canvas to test shock recovery.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- III // GRAND COMPLICATIONS BENTO: MINUTE REPEATER & EQUATION OF TIME -->
+    <section id="complications-bento" class="space-y-8">
+      <div class="space-y-2">
+        <div class="text-xs font-mono-swiss uppercase tracking-widest text-[#d4af37] font-semibold">
+          III // Acoustic &amp; Astronomical Complications
+        </div>
+        <h2 class="font-serif-luxury text-4xl sm:text-5xl font-semibold tracking-tight">
+          Cathedral Minute Repeater &amp; Celestial Sky Chart.
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left 7 Cols: Interactive Minute Repeater Acoustic Synthesizer -->
+        <div class="lg:col-span-7 luxury-glass rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-mono-swiss uppercase text-[#d4af37] font-semibold">Sonnerie au Passage</span>
+              <h3 class="font-serif-luxury text-3xl font-semibold mt-0.5">Cathedral Gong Minute Repeater</h3>
+            </div>
+            <span id="repeaterTimeDisplay" class="px-3 py-1 rounded-xl bg-[var(--pill-bg)] border border-[var(--border-hairline)] font-mono-swiss text-sm font-bold text-[#d4af37]">
+              10:08
+            </span>
+          </div>
+
+          <p class="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+            When the slide lever at 9 o'clock is actuated, two hand-tuned hardened steel cathedral gongs wrap twice around the movement to chime the <strong>hours (low C#4)</strong>, <strong>quarter-hours (dual C#4/G#4)</strong>, and <strong>elapsed minutes (high G#4)</strong>.
+          </p>
+
+          <!-- Visual Chime Hammer Visualizer -->
+          <div class="p-5 rounded-2xl bg-[#080706] border border-white/10 space-y-4">
+            <div class="flex items-center justify-between text-xs font-mono-swiss text-stone-400">
+              <span>HAMMER STRIKE SEQUENCE:</span>
+              <strong id="chimeSequenceReadout" class="text-[#d4af37]">READY TO ACTUATE SLIDE</strong>
+            </div>
+            <div id="chimePillsContainer" class="flex flex-wrap gap-1.5 min-h-[36px] items-center">
+              <span class="text-xs font-mono-swiss text-stone-500">Select a time or click "Actuate Repeater Slide" to hear the mechanical chime sequence...</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center pt-1">
+            <div class="flex items-center gap-2 font-mono-swiss text-xs">
+              <label for="repeaterPresetSelect" class="text-[var(--text-secondary)]">TIME:</label>
+              <select id="repeaterPresetSelect" class="bg-[var(--bg-secondary)] border border-[var(--border-hairline)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-primary)] outline-none flex-1">
+                <option value="10:18">10:18 (10 Hrs, 1 Qtr, 3 Mins)</option>
+                <option value="12:49">12:49 (12 Hrs, 3 Qtrs, 4 Mins)</option>
+                <option value="04:32">04:32 (4 Hrs, 2 Qtrs, 2 Mins)</option>
+                <option value="now">Current Local Time</option>
+              </select>
+            </div>
+            <button id="triggerRepeaterBtn" class="py-3 px-5 rounded-xl bg-gradient-to-r from-[#f3d478] via-[#d4af37] to-[#b8860b] text-stone-950 font-mono-swiss text-xs font-bold uppercase tracking-wider shadow-lg shadow-amber-500/20 cursor-pointer">
+              🔔 Actuate Repeater Slide
+            </button>
+          </div>
+        </div>
+
+        <!-- Right 5 Cols: Perpetual Lunar Phase & Equation of Time Complication -->
+        <div class="lg:col-span-5 luxury-glass rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-5">
+          <div>
+            <span class="text-xs font-mono-swiss uppercase text-sky-400 font-semibold">Astronomical Complication</span>
+            <h3 class="font-serif-luxury text-3xl font-semibold mt-0.5">Perpetual Moonphase &amp; Sky Disc</h3>
+            <p class="text-xs text-[var(--text-secondary)] mt-1">
+              Accurate to 1 day in 1,225 years. Scrub the lunation cycle below to inspect the lapis-lazuli tellurium disc.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-center py-2">
+            <canvas id="moonphaseCanvas" width="220" height="220" class="rounded-full border border-[var(--border-strong)] shadow-inner bg-[#05070e]"></canvas>
+          </div>
+
+          <div class="space-y-2 font-mono-swiss text-xs">
+            <div class="flex justify-between">
+              <span class="text-[var(--text-secondary)]">SYNODIC LUNATION DAY</span>
+              <strong id="lunarDayLabel" class="text-[#d4af37]">Day 14.8 &middot; Full Moon</strong>
+            </div>
+            <input id="lunarSlider" type="range" min="0" max="29.5" step="0.5" value="14.8" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- IV // BESPOKE COLLECTOR ATELIER & COMMISSION ALLOCATION -->
+    <section id="bespoke-atelier" class="luxury-glass rounded-3xl p-6 sm:p-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-6 space-y-5">
+          <div class="text-xs font-mono-swiss uppercase tracking-widest text-[#d4af37] font-semibold">
+            IV // Geneva Bespoke Commission Atelier
+          </div>
+          <h2 class="font-serif-luxury text-3xl sm:text-5xl font-semibold tracking-tight">
+            Configure your Pièce Unique allocation.
+          </h2>
+          <p class="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+            Each Calibre AET-09 requires 14 months of uninterrupted assembly by a single master watchmaker in our Rue du Rhône atelier. Selecting options below updates both your valuation and the live 3D movement above.
+          </p>
+
+          <!-- Case Material Selector -->
+          <div class="space-y-2">
+            <span class="text-[11px] font-mono-swiss uppercase text-[var(--text-secondary)] block">1. Case &amp; Bridge Metallurgy</span>
+            <div class="grid grid-cols-3 gap-2 font-mono-swiss text-xs">
+              <button data-config-metal="rosegold" data-metal-price="285000" class="config-metal-btn crown-btn crown-btn-active py-2.5 px-3 rounded-xl">
+                18k Rose Gold
+              </button>
+              <button data-config-metal="platinum" data-metal-price="315000" class="config-metal-btn crown-btn py-2.5 px-3 rounded-xl">
+                Platinum 950
+              </button>
+              <button data-config-metal="sapphire" data-metal-price="390000" class="config-metal-btn crown-btn py-2.5 px-3 rounded-xl">
+                Milled Sapphire
+              </button>
+            </div>
+          </div>
+
+          <!-- Finishing Style Selector -->
+          <div class="space-y-2">
+            <span class="text-[11px] font-mono-swiss uppercase text-[var(--text-secondary)] block">2. Hand-Engraving &amp; Guilloché</span>
+            <div class="grid grid-cols-3 gap-2 font-mono-swiss text-xs">
+              <button data-finish-price="0" class="config-finish-btn crown-btn crown-btn-active py-2.5 px-3 rounded-xl">
+                Côtes de Genève
+              </button>
+              <button data-finish-price="24000" class="config-finish-btn crown-btn py-2.5 px-3 rounded-xl">
+                Clous de Paris
+              </button>
+              <button data-finish-price="48000" class="config-finish-btn crown-btn py-2.5 px-3 rounded-xl">
+                 Meteorite Dial
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 6 Cols: Valuation & Dossier Reservation -->
+        <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono-swiss">
+          <div class="p-5 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+            <div class="text-[10px] text-[var(--text-muted)] uppercase">Hand-Crafted Parts</div>
+            <div class="text-2xl sm:text-3xl font-bold text-[#d4af37] mt-1">412 Parts</div>
+            <div class="text-[11px] text-[var(--text-secondary)] mt-1">16.4g total tourbillon weight</div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-[var(--pill-bg)] border border-[var(--border-hairline)]">
+            <div class="text-[10px] text-[var(--text-muted)] uppercase">Estimated Delivery</div>
+            <div class="text-2xl sm:text-3xl font-bold text-sky-400 mt-1">Q4 2027</div>
+            <div class="text-[11px] text-[var(--text-secondary)] mt-1">Individually numbered caseback</div>
+          </div>
+
+          <div class="sm:col-span-2 p-6 rounded-2xl bg-[#080706] text-stone-100 border border-[#d4af37]/40 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="text-[10px] text-stone-400 uppercase">Bespoke Atelier Valuation (CHF)</div>
+              <div id="atelierPriceOut" class="text-3xl sm:text-4xl font-bold text-[#d4af37] mt-1">CHF 285,000</div>
+            </div>
+            <button id="reserveAllocationBtn" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#f3d478] via-[#d4af37] to-[#b8860b] text-stone-950 font-sans font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all cursor-pointer">
+              Request Private Dossier &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[var(--border-hairline)] py-10 px-4 sm:px-8 text-xs font-mono-swiss text-[var(--text-muted)]">
+    <div class="max-w-[1380px] mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2 text-[var(--text-primary)] font-semibold">
+        <span class="w-5 h-5 rounded bg-[#d4af37] text-stone-950 flex items-center justify-center text-[11px]">⚙</span>
+        <span>MANUFACTURE AETHERIA GENÈVE SA &copy; 1884–2026 &middot; RUE DU RHÔNE 42, GENEVA</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#hero-calibre" class="hover:text-[#d4af37]">Back to 3D Calibre &uarr;</a>
+        <a href="#vibrograph-lab" class="hover:text-[#d4af37]">Escapement Lab</a>
+        <a href="#complications-bento" class="hover:text-[#d4af37]">Minute Repeater</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="horologyToast" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl luxury-glass border border-[#d4af37] font-mono-swiss text-xs font-semibold text-[var(--text-primary)] shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    Action executed
+  </div>
+
+  <script>
+    window.onload = function () {
+      // =====================================================================
+      // 1. WEB AUDIO MECHANICAL ESCAPEMENT TICK & CATHEDRAL MINUTE REPEATER
+      // =====================================================================
+      let audioCtx = null;
+      let soundOn = true;
+
+      function getAudioContext() {
+        if (!soundOn) return null;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+
+      // Crisp metallic pallet-fork tick impulse
+      function playEscapementTick(freq = 2800, gainLevel = 0.025) {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(620, now + 0.018);
+        gain.gain.setValueAtTime(gainLevel, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.024);
+      }
+
+      // Cathedral Gong Strike (Rich harmonic bell synthesis)
+      function playCathedralGong(baseFreq = 554.37, dur = 0.85) {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        [1, 2.0, 2.76, 4.1].forEach((mult, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = idx === 0 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(baseFreq * mult, now);
+          gain.gain.setValueAtTime(0.09 / (idx + 1), now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + dur / (idx * 0.6 + 1));
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + dur + 0.05);
+        });
+      }
+
+      document.getElementById('tickAudioBtn').addEventListener('click', () => {
+        soundOn = !soundOn;
+        document.getElementById('tickAudioIcon').textContent = soundOn ? '🔊' : '🔇';
+      });
+
+      // Toast helper
+      const toastEl = document.getElementById('horologyToast');
+      let toastTimer = null;
+      function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.remove('translate-y-24', 'opacity-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toastEl.classList.add('translate-y-24', 'opacity-0');
+        }, 2700);
+      }
+
+      // =====================================================================
+      // 2. SHOWCASE MODE & THEME SWITCHER
+      // =====================================================================
+      let isShowcaseMode = false;
+      const showcaseModeBtn = document.getElementById('showcaseModeBtn');
+      showcaseModeBtn.addEventListener('click', () => {
+        isShowcaseMode = !isShowcaseMode;
+        document.body.classList.toggle('showcase-clean', isShowcaseMode);
+        showcaseModeBtn.classList.toggle('crown-btn-active', isShowcaseMode);
+        document.getElementById('showcaseLabel').textContent = isShowcaseMode ? 'Exit Showcase' : 'Showcase Mode';
+        playCathedralGong(isShowcaseMode ? 698.46 : 523.25, 0.45);
+        showToast(isShowcaseMode ? '🎥 Showcase Mode ON — Text overlays hidden for pure 3D Twitter capture!' : '🎥 Showcase Mode OFF — Editorial overlays restored');
+      });
+
+      const htmlEl = document.documentElement;
+      document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        const cur = htmlEl.getAttribute('data-theme');
+        const next = cur === 'vault' ? 'champagne' : 'vault';
+        htmlEl.setAttribute('data-theme', next);
+        document.getElementById('themeIcon').textContent = next === 'vault' ? '☀️' : '🌙';
+        playEscapementTick(1800, 0.06);
+      });
+
+      // =====================================================================
+      // 3. FULL-HERO (100vw × 100vh) THREE.JS 3D BIAXIAL TOURBILLON CALIBRE
+      // =====================================================================
+      const stageEl = document.getElementById('calibreHeroStage');
+      const scene = new THREE.Scene();
+
+      const getStageSize = () => ({
+        w: Math.max(320, stageEl.clientWidth || window.innerWidth),
+        h: Math.max(320, stageEl.clientHeight || window.innerHeight)
+      });
+
+      const initSz = getStageSize();
+      const camera = new THREE.PerspectiveCamera(42, initSz.w / initSz.h, 0.1, 400);
+      const camTargetPos = new THREE.Vector3(0, 4.5, 25.5);
+      const camLookAtTarget = new THREE.Vector3(0, 0, 0);
+      camera.position.copy(camTargetPos);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(initSz.w, initSz.h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.22;
+      stageEl.appendChild(renderer.domElement);
+
+      // Luxury Studio Jeweler Lighting
+      const ambientLight = new THREE.AmbientLight(0xfff8eb, 0.78);
+      scene.add(ambientLight);
+
+      const keyLight = new THREE.DirectionalLight(0xfff0d4, 2.2);
+      keyLight.position.set(16, 22, 20);
+      scene.add(keyLight);
+
+      const rimGoldLight = new THREE.PointLight(0xd4af37, 2.8, 55);
+      rimGoldLight.position.set(-14, 10, 14);
+      scene.add(rimGoldLight);
+
+      const blueSteelLight = new THREE.PointLight(0x38bdf8, 2.0, 50);
+      blueSteelLight.position.set(14, -12, 12);
+      scene.add(blueSteelLight);
+
+      const rubyCoreLight = new THREE.PointLight(0xe11d48, 1.8, 30);
+      rubyCoreLight.position.set(0, -2.5, 4);
+      scene.add(rubyCoreLight);
+
+      // Master Calibre Root Group (Offset slightly right on wide screens so copy & watch balance)
+      const calibreRoot = new THREE.Group();
+      calibreRoot.position.x = initSz.w > 1024 ? 3.2 : 0;
+      calibreRoot.rotation.x = 0.28;
+      calibreRoot.rotation.y = -0.32;
+      scene.add(calibreRoot);
+
+      // Horological Materials
+      const caseMetalMat = new THREE.MeshStandardMaterial({
+        color: 0xe5a97c, // 18k Rose Gold default
+        metalness: 0.92,
+        roughness: 0.16
+      });
+
+      const brassGearMat = new THREE.MeshStandardMaterial({
+        color: 0xd4af37,
+        metalness: 0.88,
+        roughness: 0.22
+      });
+
+      const rhodiumBridgeMat = new THREE.MeshStandardMaterial({
+        color: 0xcbd5e1,
+        metalness: 0.85,
+        roughness: 0.26
+      });
+
+      const bluedSteelMat = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        metalness: 0.9,
+        roughness: 0.18
+      });
+
+      const rubyJewelMat = new THREE.MeshPhysicalMaterial({
+        color: 0xe11d48,
+        emissive: 0x881337,
+        emissiveIntensity: 0.45,
+        roughness: 0.08,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.92
+      });
+
+      const sapphireCrystalMat = new THREE.MeshPhysicalMaterial({
+        color: 0xe0f2fe,
+        transparent: true,
+        opacity: 0.22,
+        roughness: 0.05,
+        metalness: 0.1
+      });
+
+      // Helper to construct a 3D toothed horological gear wheel with spokes
+      function createToothedGear(radius, thickness, teethCount, mat, spokeCount = 5) {
+        const gearGroup = new THREE.Group();
+
+        // Outer Rim
+        const rimGeo = new THREE.TorusGeometry(radius, thickness * 0.65, 12, 64);
+        const rimMesh = new THREE.Mesh(rimGeo, mat);
+        gearGroup.add(rimMesh);
+
+        // Inner Hub
+        const hubGeo = new THREE.CylinderGeometry(radius * 0.24, radius * 0.24, thickness * 1.3, 24);
+        hubGeo.rotateX(Math.PI / 2);
+        gearGroup.add(new THREE.Mesh(hubGeo, mat));
+
+        // Spokes
+        for (let s = 0; s < spokeCount; s++) {
+          const angle = (s / spokeCount) * Math.PI * 2;
+          const spokeGeo = new THREE.BoxGeometry(radius * 1.85, thickness * 0.6, radius * 0.09);
+          spokeGeo.rotateX(Math.PI / 2);
+          const spoke = new THREE.Mesh(spokeGeo, mat);
+          spoke.rotation.z = angle;
+          gearGroup.add(spoke);
+        }
+
+        // Precision Gear Teeth around circumference
+        const toothW = (2 * Math.PI * radius) / (teethCount * 2.1);
+        const toothH = radius * 0.14;
+        const toothGeo = new THREE.BoxGeometry(toothW, toothH, thickness);
+        for (let t = 0; t < teethCount; t++) {
+          const a = (t / teethCount) * Math.PI * 2;
+          const tm = new THREE.Mesh(toothGeo, mat);
+          tm.position.set(
+            Math.cos(a) * (radius + toothH * 0.45),
+            Math.sin(a) * (radius + toothH * 0.45),
+            0
+          );
+          tm.rotation.z = a - Math.PI / 2;
+          gearGroup.add(tm);
+        }
+
+        return gearGroup;
+      }
+
+      // 5 Axial Layers for Real-Time Exploded CAD View (along Z axis of watch)
+      const layer0Caseback = new THREE.Group();   // Baseplate, Case Barrel, Lugs
+      const layer1GearTrain = new THREE.Group();  // Mainspring Barrel & Coaxial Gear Train
+      const layer2Bridges = new THREE.Group();    // Skeletonized Geneva Bridges & Rubies
+      const layer3Tourbillon = new THREE.Group(); // Biaxial Flying Tourbillon @ 6 o'clock
+      const layer4DialHands = new THREE.Group();  // Chapter Ring, Hands, Sapphire Crystal
+
+      calibreRoot.add(layer0Caseback);
+      calibreRoot.add(layer1GearTrain);
+      calibreRoot.add(layer2Bridges);
+      calibreRoot.add(layer3Tourbillon);
+      calibreRoot.add(layer4DialHands);
+
+      // --- LAYER 0: OUTER WATCH CASE, FLUTED BEZEL, LUGS & WINDING CROWN ---
+      const caseMainRing = new THREE.Mesh(new THREE.TorusGeometry(6.8, 0.52, 24, 96), caseMetalMat);
+      layer0Caseback.add(caseMainRing);
+
+      const caseBackRim = new THREE.Mesh(new THREE.TorusGeometry(6.5, 0.28, 16, 80), rhodiumBridgeMat);
+      caseBackRim.position.z = -0.8;
+      layer0Caseback.add(caseBackRim);
+
+      // Skeletonized Mainplate Crossbars
+      for (let i = 0; i < 6; i++) {
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(12.6, 0.42, 0.22), rhodiumBridgeMat);
+        bar.rotation.z = (i / 6) * Math.PI;
+        bar.position.z = -0.75;
+        layer0Caseback.add(bar);
+      }
+
+      // 4 Sculpted Watch Lugs (Top & Bottom)
+      [[-2.6, 7.1], [2.6, 7.1], [-2.6, -7.1], [2.6, -7.1]].forEach(([lx, ly]) => {
+        const lug = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.85, 0.75), caseMetalMat);
+        lug.position.set(lx, ly, -0.15);
+        lug.rotation.z = lx > 0 ? -0.14 : 0.14;
+        layer0Caseback.add(lug);
+      });
+
+      // Winding Crown at 3 o'clock + Knurled Grooves
+      const crownGroup = new THREE.Group();
+      crownGroup.position.set(7.65, 0, 0);
+      const crownCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.95, 20), caseMetalMat);
+      crownCyl.rotation.z = Math.PI / 2;
+      crownGroup.add(crownCyl);
+      layer0Caseback.add(crownGroup);
+
+      // --- LAYER 1: MAINSPRING BARREL & INTERLOCKING GEAR TRAIN ---
+      // Twin Mainspring Barrels at 10 & 2 o'clock
+      const barrelLeft = createToothedGear(2.35, 0.26, 36, brassGearMat, 6);
+      barrelLeft.position.set(-2.6, 2.5, -0.25);
+      layer1GearTrain.add(barrelLeft);
+
+      const barrelRight = createToothedGear(2.35, 0.26, 36, brassGearMat, 6);
+      barrelRight.position.set(2.6, 2.5, -0.25);
+      layer1GearTrain.add(barrelRight);
+
+      // Center Great Wheel
+      const centerWheel = createToothedGear(2.75, 0.22, 42, brassGearMat, 5);
+      centerWheel.position.set(0, 0.4, -0.05);
+      layer1GearTrain.add(centerWheel);
+
+      // Third & Fourth Intermediate Pinion Wheels
+      const thirdWheel = createToothedGear(1.65, 0.2, 28, rhodiumBridgeMat, 4);
+      thirdWheel.position.set(-2.9, -1.2, 0.1);
+      layer1GearTrain.add(thirdWheel);
+
+      const fourthWheel = createToothedGear(1.55, 0.2, 26, rhodiumBridgeMat, 4);
+      fourthWheel.position.set(2.9, -1.2, 0.1);
+      layer1GearTrain.add(fourthWheel);
+
+      // --- LAYER 2: SKELETONIZED ARCHITECTURAL BRIDGES, RUBY CHATONS & BLUED SCREWS ---
+      const mainBridgeArch = new THREE.Mesh(new THREE.TorusGeometry(4.8, 0.22, 12, 64, Math.PI), caseMetalMat);
+      mainBridgeArch.position.set(0, 0.2, 0.35);
+      layer2Bridges.add(mainBridgeArch);
+
+      // Tourbillon Cock Bridge at 6 o'clock
+      const tourbillonBridge = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.42, 0.25), rhodiumBridgeMat);
+      tourbillonBridge.position.set(0, -2.55, 0.42);
+      layer2Bridges.add(tourbillonBridge);
+
+      // 12 Synthetic Ruby Jewel Bearings + Thermal-Blued Screws
+      const rubyCoords = [
+        [0, 0.4], [-2.6, 2.5], [2.6, 2.5], [-2.9, -1.2], [2.9, -1.2],
+        [0, -2.55], [-4.5, 0.2], [4.5, 0.2], [0, 4.9], [-2.1, -2.55], [2.1, -2.55]
+      ];
+      rubyCoords.forEach(([rx, ry], idx) => {
+        const ruby = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.32, 20), rubyJewelMat);
+        ruby.rotation.x = Math.PI / 2;
+        ruby.position.set(rx, ry, 0.42);
+        layer2Bridges.add(ruby);
+
+        if (idx % 2 === 0) {
+          const screw = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.36, 16), bluedSteelMat);
+          screw.rotation.x = Math.PI / 2;
+          screw.position.set(rx * 1.12, ry * 1.12, 0.44);
+          layer2Bridges.add(screw);
+        }
+      });
+
+      // --- LAYER 3: BIAXIAL FLYING TOURBILLON CAGE AT 6 O'CLOCK ---
+      const tourbillonAnchor = new THREE.Group();
+      tourbillonAnchor.position.set(0, -2.55, 0.55);
+      layer3Tourbillon.add(tourbillonAnchor);
+
+      // Outer Gimbal Cage (Rotates on Y axis)
+      const outerTourbillonCage = new THREE.Group();
+      outerTourbillonCage.add(new THREE.Mesh(new THREE.TorusGeometry(2.15, 0.11, 16, 64), rhodiumBridgeMat));
+      outerTourbillonCage.add(new THREE.Mesh(new THREE.BoxGeometry(4.3, 0.14, 0.14), rhodiumBridgeMat));
+      tourbillonAnchor.add(outerTourbillonCage);
+
+      // Inner Lyre Cage (Rotates on X & Z axes)
+      const innerTourbillonCage = new THREE.Group();
+      innerTourbillonCage.add(new THREE.Mesh(new THREE.TorusGeometry(1.65, 0.09, 14, 48), caseMetalMat));
+      outerTourbillonCage.add(innerTourbillonCage);
+
+      // Oscillating Balance Wheel with Gold Timing Weights + Breathing Breguet Hairspring
+      const balanceWheelGroup = new THREE.Group();
+      const balanceRim = new THREE.Mesh(new THREE.TorusGeometry(1.18, 0.075, 12, 48), brassGearMat);
+      balanceWheelGroup.add(balanceRim);
+      const balanceCross = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.09, 0.09), brassGearMat);
+      balanceWheelGroup.add(balanceCross);
+
+      // 8 Micro Gold Timing Screws on Balance Wheel Rim
+      for (let m = 0; m < 8; m++) {
+        const ma = (m / 8) * Math.PI * 2;
+        const weight = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.24, 10), caseMetalMat);
+        weight.position.set(Math.cos(ma) * 1.24, Math.sin(ma) * 1.24, 0);
+        weight.rotation.z = ma;
+        balanceWheelGroup.add(weight);
+      }
+
+      // Concentric Breathing Hairspring Rings
+      const hairspringGroup = new THREE.Group();
+      for (let r = 0.25; r <= 0.75; r += 0.16) {
+        const hs = new THREE.Mesh(new THREE.TorusGeometry(r, 0.025, 8, 40), bluedSteelMat);
+        hairspringGroup.add(hs);
+      }
+      balanceWheelGroup.add(hairspringGroup);
+      innerTourbillonCage.add(balanceWheelGroup);
+
+      // --- LAYER 4: CHAPTER RING, 12 ROMAN BATON INDICES, HANDS & SAPPHIRE DOME ---
+      const chapterRing = new THREE.Mesh(new THREE.TorusGeometry(6.15, 0.18, 16, 80), caseMetalMat);
+      chapterRing.position.z = 0.72;
+      layer4DialHands.add(chapterRing);
+
+      // 12 Applied Gold Hour Markers
+      for (let h = 0; h < 12; h++) {
+        const ha = (h / 12) * Math.PI * 2;
+        const isQuarter = h % 3 === 0;
+        const marker = new THREE.Mesh(
+          new THREE.BoxGeometry(isQuarter ? 0.24 : 0.13, isQuarter ? 0.95 : 0.65, 0.16),
+          caseMetalMat
+        );
+        marker.position.set(Math.cos(ha) * 5.55, Math.sin(ha) * 5.55, 0.76);
+        marker.rotation.z = ha - Math.PI / 2;
+        layer4DialHands.add(marker);
+      }
+
+      // Skeletonized Dauphine Hour, Minute & Flyback Chronograph Hands
+      const hourHandPivot = new THREE.Group();
+      hourHandPivot.position.set(0, 0.4, 0.86);
+      const hourBlade = new THREE.Mesh(new THREE.ConeGeometry(0.24, 3.4, 4), caseMetalMat);
+      hourBlade.position.y = 1.4;
+      hourHandPivot.add(hourBlade);
+      hourHandPivot.rotation.z = -0.85; // 10 o'clock position
+      layer4DialHands.add(hourHandPivot);
+
+      const minHandPivot = new THREE.Group();
+      minHandPivot.position.set(0, 0.4, 0.94);
+      const minBlade = new THREE.Mesh(new THREE.ConeGeometry(0.18, 4.8, 4), caseMetalMat);
+      minBlade.position.y = 2.1;
+      minHandPivot.add(minBlade);
+      minHandPivot.rotation.z = 0.92; // 10:09horological smile
+      layer4DialHands.add(minHandPivot);
+
+      const chronoSecPivot = new THREE.Group();
+      chronoSecPivot.position.set(0, 0.4, 1.02);
+      const secBlade = new THREE.Mesh(new THREE.BoxGeometry(0.06, 5.8, 0.06), bluedSteelMat);
+      secBlade.position.y = 1.9;
+      chronoSecPivot.add(secBlade);
+      layer4DialHands.add(chronoSecPivot);
+
+      // Anti-Reflective Domed Sapphire Crystal
+      const crystalDisc = new THREE.Mesh(new THREE.CylinderGeometry(6.3, 6.3, 0.14, 64), sapphireCrystalMat);
+      crystalDisc.rotation.x = Math.PI / 2;
+      crystalDisc.position.z = 1.18;
+      layer4DialHands.add(crystalDisc);
+
+      // --- ORBITAL STARFIELD GOLDEN MICRO-PARTICLES AROUND CALIBRE ---
+      const DUST_COUNT = 950;
+      const dustGeo = new THREE.BufferGeometry();
+      const dustPos = new Float32Array(DUST_COUNT * 3);
+      for (let i = 0; i < DUST_COUNT; i++) {
+        const rad = 8.5 + Math.random() * 24;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = (Math.random() - 0.5) * Math.PI;
+        dustPos[i * 3] = Math.cos(theta) * Math.cos(phi) * rad;
+        dustPos[i * 3 + 1] = Math.sin(phi) * rad * 0.75;
+        dustPos[i * 3 + 2] = Math.sin(theta) * Math.cos(phi) * rad;
+      }
+      dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+      const dustMat = new THREE.PointsMaterial({
+        color: 0xd4af37,
+        size: 0.11,
+        transparent: true,
+        opacity: 0.55
+      });
+      const dustPoints = new THREE.Points(dustGeo, dustMat);
+      calibreRoot.add(dustPoints);
+
+      // =====================================================================
+      // 4. INTERACTIVE 3D HERO CONTROLS (EXPLODE, ORBIT, WIND, ALLOY, FREQ)
+      // =====================================================================
+      let explodeTarget = 0; // 0.0 to 1.0
+      let explodeCurrent = 0;
+      let beatFreqHz = 4.0;
+      let powerReservePct = 98.0;
+      let chronoRunning = true;
+      let isDraggingStage = false;
+      let prevPtr = { x: 0, y: 0 };
+      let targetRotX = 0.28;
+      let targetRotY = -0.32;
+
+      stageEl.addEventListener('pointerdown', (e) => {
+        isDraggingStage = true;
+        prevPtr = { x: e.clientX, y: e.clientY };
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (!isDraggingStage) {
+          // Subtle parallax tilt when moving mouse over hero
+          const nx = (e.clientX / window.innerWidth) * 2 - 1;
+          const ny = (e.clientY / window.innerHeight) * 2 - 1;
+          rimGoldLight.position.x = nx * 18;
+          rimGoldLight.position.y = -ny * 14;
+          return;
+        }
+        const dx = e.clientX - prevPtr.x;
+        const dy = e.clientY - prevPtr.y;
+        prevPtr = { x: e.clientX, y: e.clientY };
+        targetRotY += dx * 0.0075;
+        targetRotX = Math.max(-1.2, Math.min(1.2, targetRotX + dy * 0.0075));
+      });
+
+      window.addEventListener('pointerup', () => {
+        isDraggingStage = false;
+      });
+
+      // Explode Slider & Button
+      const explodeSlider = document.getElementById('explodeSlider');
+      function setExplodeAmount(pct) {
+        explodeTarget = pct / 100;
+        explodeSlider.value = pct;
+        document.getElementById('explodePctReadout').textContent =
+          pct === 0 ? '0% (Sealed)' : `${pct}% Exploded`;
+        document.getElementById('activeLayerTag').textContent =
+          pct > 30 ? '5-LAYER AXIAL CAD' : 'ASSEMBLED WATCH';
+      }
+
+      explodeSlider.addEventListener('input', (e) => {
+        setExplodeAmount(parseInt(e.target.value, 10));
+      });
+
+      document.getElementById('heroExplodeToggleBtn').addEventListener('click', () => {
+        const nextPct = explodeTarget < 0.5 ? 85 : 0;
+        setExplodeAmount(nextPct);
+        if (nextPct > 0) {
+          targetRotX = 0.35;
+          targetRotY = -0.68;
+        } else {
+          targetRotX = 0.24;
+          targetRotY = -0.28;
+        }
+        playCathedralGong(nextPct > 0 ? 587.33 : 440, 0.5);
+        showToast(nextPct > 0 ? '🔩 Exploded Calibre AET-09 into 5 axial horological planes' : '⌚ Collapsed Calibre AET-09 into sealed case');
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'e' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+          document.getElementById('heroExplodeToggleBtn').click();
+        }
+      });
+
+      // Camera View Presets in Bottom Dock
+      document.querySelectorAll('.cam-preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.cam-preset-btn').forEach((b) => b.classList.remove('crown-btn-active'));
+          btn.classList.add('crown-btn-active');
+          const mode = btn.getAttribute('data-cam');
+          playEscapementTick(2400, 0.05);
+
+          if (mode === 'dial') {
+            setExplodeAmount(0);
+            camTargetPos.set(0, 2.5, 24.5);
+            camLookAtTarget.set(0, 0, 0);
+            targetRotX = 0.18;
+            targetRotY = -0.18;
+          } else if (mode === 'exploded') {
+            setExplodeAmount(90);
+            camTargetPos.set(0, 4.5, 26.5);
+            camLookAtTarget.set(0, 0, 0);
+            targetRotX = 0.36;
+            targetRotY = -0.78;
+          } else if (mode === 'macro') {
+            setExplodeAmount(22);
+            camTargetPos.set(1.5, -2.2, 12.2);
+            camLookAtTarget.set(1.5, -2.4, 0.5);
+            targetRotX = 0.12;
+            targetRotY = -0.15;
+            showToast('🔬 10× Jeweler Loupe focused on Biaxial Flying Tourbillon Cage');
+          } else if (mode === 'caseback') {
+            setExplodeAmount(15);
+            camTargetPos.set(0, 2.0, 24.5);
+            camLookAtTarget.set(0, 0, 0);
+            targetRotX = -0.22;
+            targetRotY = Math.PI - 0.25;
+            showToast('🔄 Flipped to Sapphire Exhibition Caseback & Ruby Bridges');
+          }
+        });
+      });
+
+      // Beat Frequency Slider
+      document.getElementById('freqSlider').addEventListener('input', (e) => {
+        beatFreqHz = parseFloat(e.target.value);
+        const vph = Math.round(beatFreqHz * 7200).toLocaleString();
+        document.getElementById('freqHzReadout').textContent = `${beatFreqHz.toFixed(1)} Hz (${(beatFreqHz * 7.2).toFixed(1)}k)`;
+        document.getElementById('liveBeatReadout').textContent = `${beatFreqHz.toFixed(1)} Hz · ${vph} VPH`;
+      });
+
+      // Wind Mainspring Button
+      let windBurstSpin = 0;
+      document.getElementById('windBarrelBtn').addEventListener('click', () => {
+        powerReservePct = 100;
+        windBurstSpin = 1.8;
+        document.getElementById('windReserveBadge').textContent = '100%';
+        document.getElementById('hudPowerReserve').textContent = '80.0 HRS (100%)';
+        for (let i = 0; i < 5; i++) {
+          setTimeout(() => playEscapementTick(1600 + i * 240, 0.05), i * 45);
+        }
+        showToast('⚙️ Twin mainspring barrels wound to full 80-hour reserve');
+      });
+
+      // Flyback Chronograph Trigger
+      document.getElementById('chronoTriggerBtn').addEventListener('click', () => {
+        chronoRunning = !chronoRunning;
+        if (!chronoRunning) {
+          chronoSecPivot.rotation.z = 0;
+        }
+        document.getElementById('chronoStatusText').textContent = chronoRunning ? 'RUN' : 'FLYBACK 0.0s';
+        playEscapementTick(3200, 0.07);
+      });
+
+      // Precious Alloy Switcher (Updates both Hero & Atelier Configurator)
+      function applyCaseAlloy(alloyKey) {
+        document.querySelectorAll('.alloy-btn').forEach((b) => {
+          b.classList.toggle('crown-btn-active', b.getAttribute('data-alloy') === alloyKey);
+        });
+        if (alloyKey === 'rosegold') {
+          caseMetalMat.color.setHex(0xe5a97c);
+          caseMetalMat.transparent = false;
+          caseMetalMat.opacity = 1.0;
+          document.getElementById('alloyNameLabel').textContent = '18k Rose Gold';
+        } else if (alloyKey === 'platinum') {
+          caseMetalMat.color.setHex(0xe2e8f0);
+          caseMetalMat.transparent = false;
+          caseMetalMat.opacity = 1.0;
+          document.getElementById('alloyNameLabel').textContent = 'Platinum 950';
+        } else if (alloyKey === 'sapphire') {
+          caseMetalMat.color.setHex(0xbae6fd);
+          caseMetalMat.transparent = true;
+          caseMetalMat.opacity = 0.42;
+          document.getElementById('alloyNameLabel').textContent = 'Milled Sapphire';
+        }
+        playEscapementTick(2200, 0.04);
+      }
+
+      document.querySelectorAll('.alloy-btn').forEach((btn) => {
+        btn.addEventListener('click', () => applyCaseAlloy(btn.getAttribute('data-alloy')));
+      });
+
+      // Responsive Resize
+      window.addEventListener('resize', () => {
+        const sz = getStageSize();
+        camera.aspect = sz.w / sz.h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(sz.w, sz.h);
+        calibreRoot.position.x = sz.w > 1024 && !isShowcaseMode ? 3.2 : 0;
+      });
+
+      // 3D Animation Loop
+      let simTime = 0;
+      let lastTickBeat = 0;
+
+      function animateCalibreStage() {
+        requestAnimationFrame(animateCalibreStage);
+        const dt = 0.016;
+        simTime += dt;
+        windBurstSpin *= 0.92;
+
+        // Smoothly interpolate Exploded Calibre Layer Z-offsets
+        explodeCurrent += (explodeTarget - explodeCurrent) * 0.08;
+        const spread = explodeCurrent * 3.85;
+        layer0Caseback.position.z = -spread * 1.45;
+        layer1GearTrain.position.z = -spread * 0.65;
+        layer2Bridges.position.z = spread * 0.15;
+        layer3Tourbillon.position.z = spread * 0.95;
+        layer4DialHands.position.z = spread * 1.75;
+
+        // Smooth camera & root rotation
+        camera.position.lerp(camTargetPos, 0.06);
+        const targetOffsetX = (window.innerWidth > 1024 && !isShowcaseMode) ? 3.2 : 0;
+        calibreRoot.position.x += (targetOffsetX - calibreRoot.position.x) * 0.06;
+        camera.lookAt(camLookAtTarget);
+
+        calibreRoot.rotation.x += (targetRotX - calibreRoot.rotation.x) * 0.08;
+        calibreRoot.rotation.y += (targetRotY + Math.sin(simTime * 0.35) * 0.06 - calibreRoot.rotation.y) * 0.08;
+
+        // Biaxial Flying Tourbillon Rotation + High-Frequency Balance Wheel Oscillation
+        const speedMult = beatFreqHz / 4.0;
+        outerTourbillonCage.rotation.y = simTime * 0.85 * speedMult;
+        innerTourbillonCage.rotation.x = simTime * 1.45 * speedMult;
+
+        // Harmonic balance wheel oscillation & hairspring breathing
+        const oscAngle = Math.sin(simTime * beatFreqHz * Math.PI * 2) * 1.35;
+        balanceWheelGroup.rotation.z = oscAngle;
+        const springScale = 1.0 + Math.sin(simTime * beatFreqHz * Math.PI * 2) * 0.08;
+        hairspringGroup.scale.set(springScale, springScale, 1);
+
+        // Coaxial Gear Train Rotation
+        const gearRate = 0.22 * speedMult + windBurstSpin * 0.3;
+        centerWheel.rotation.z -= gearRate * dt;
+        barrelLeft.rotation.z += (gearRate * 1.4 + windBurstSpin) * dt;
+        barrelRight.rotation.z += (gearRate * 1.4 + windBurstSpin) * dt;
+        thirdWheel.rotation.z += gearRate * 2.4 * dt;
+        fourthWheel.rotation.z -= gearRate * 2.8 * dt;
+        crownGroup.rotation.x += windBurstSpin * 0.4;
+
+        if (chronoRunning) {
+          chronoSecPivot.rotation.z -= dt * 0.45 * speedMult;
+        }
+
+        dustPoints.rotation.y = simTime * 0.04;
+
+        // Subtle periodic mechanical tick sound if user enabled audio & scrolled near top
+        if (simTime - lastTickBeat > (1 / beatFreqHz) && window.scrollY < 500) {
+          lastTickBeat = simTime;
+          // Keep ambient tick very soft so it's pleasant
+          playEscapementTick(2900, 0.008);
+        }
+
+        renderer.render(scene, camera);
+      }
+      animateCalibreStage();
+
+      // =====================================================================
+      // 5. SECTION II: 2D SWISS LEVER ESCAPEMENT & VIBROGRAPH LAB
+      // =====================================================================
+      const escCanvas = document.getElementById('escapementCanvas');
+      const eCtx = escCanvas.getContext('2d');
+      let barrelTorque = 1.0;
+      let targetAmplitudeDeg = 295;
+      let swanNeckTrim = 0.1;
+      let shockJitter = 0;
+      let escPhase = 0;
+
+      const vibroPoints = Array.from({ length: 90 }, (_, i) => ({
+        xRatio: i / 90,
+        yErr: (Math.random() - 0.5) * 4
+      }));
+
+      function updateChronometerStats() {
+        const rate = (swanNeckTrim + (barrelTorque - 1.0) * 1.8).toFixed(1);
+        const sign = rate >= 0 ? '+' : '';
+        document.getElementById('vibroRateReadout').textContent = `${sign}${rate} s/day`;
+        document.getElementById('fineRegulatorLabel').textContent = `${sign}${rate} s/d (COSC)`;
+        document.getElementById('hudAmplitude').textContent = `${targetAmplitudeDeg}° · ${sign}${rate}s/d`;
+
+        const isCosc = Math.abs(rate) <= 2.5;
+        const banner = document.getElementById('coscStatusBanner');
+        banner.textContent = isCosc ? 'PASSED · GENEVA SEAL' : 'REGULATION REQUIRED';
+        banner.className = isCosc ? 'text-lg font-bold text-emerald-400' : 'text-lg font-bold text-amber-400';
+      }
+
+      document.getElementById('torqueSlider').addEventListener('input', (e) => {
+        const pct = parseInt(e.target.value, 10);
+        barrelTorque = pct / 100;
+        document.getElementById('torqueValLabel').textContent = `${pct}% Torque`;
+        updateChronometerStats();
+      });
+
+      document.getElementById('springTensionSlider').addEventListener('input', (e) => {
+        targetAmplitudeDeg = parseInt(e.target.value, 10);
+        document.getElementById('springTensionLabel').textContent = `${targetAmplitudeDeg}° Amplitude`;
+        updateChronometerStats();
+      });
+
+      document.getElementById('fineRegulatorSlider').addEventListener('input', (e) => {
+        swanNeckTrim = parseFloat(e.target.value);
+        updateChronometerStats();
+      });
+
+      function triggerShockImpulse() {
+        shockJitter = 28;
+        playCathedralGong(340, 0.35);
+        showToast('💥 5,000G Incabloc shock absorbed by ruby lyre spring');
+      }
+
+      document.getElementById('shockTestBtn').addEventListener('click', triggerShockImpulse);
+      escCanvas.addEventListener('click', triggerShockImpulse);
+
+      function renderEscapementLab() {
+        requestAnimationFrame(renderEscapementLab);
+        const w = escCanvas.clientWidth || 720;
+        const h = escCanvas.clientHeight || 350;
+        if (escCanvas.width !== w || escCanvas.height !== h) {
+          escCanvas.width = w;
+          escCanvas.height = h;
+        }
+
+        eCtx.clearRect(0, 0, w, h);
+        escPhase += 0.08 * barrelTorque;
+        shockJitter *= 0.92;
+
+        // Left Side: 15-Tooth Escape Wheel + Ruby Pallet Fork + Balance Wheel
+        const wheelX = w * 0.25;
+        const wheelY = h * 0.52;
+        const wheelR = Math.min(w, h) * 0.25;
+
+        // Stepping Escape Wheel Angle
+        const stepIndex = Math.floor(escPhase / Math.PI);
+        const frac = (escPhase % Math.PI) / Math.PI;
+        const snap = Math.pow(frac, 4);
+        const wheelAngle = ((stepIndex + snap) * (Math.PI * 2)) / 15;
+
+        eCtx.save();
+        eCtx.translate(wheelX, wheelY);
+        eCtx.rotate(wheelAngle);
+
+        // Escape Wheel Rim & Club Teeth
+        eCtx.strokeStyle = '#38bdf8';
+        eCtx.lineWidth = 2.2;
+        eCtx.beginPath();
+        eCtx.arc(0, 0, wheelR * 0.78, 0, Math.PI * 2);
+        eCtx.stroke();
+
+        for (let t = 0; t < 15; t++) {
+          const ta = (t / 15) * Math.PI * 2;
+          eCtx.beginPath();
+          eCtx.moveTo(Math.cos(ta) * wheelR * 0.78, Math.sin(ta) * wheelR * 0.78);
+          eCtx.lineTo(Math.cos(ta + 0.08) * wheelR, Math.sin(ta + 0.08) * wheelR);
+          eCtx.stroke();
+        }
+        eCtx.restore();
+
+        // Center Ruby Jewel on Escape Wheel
+        eCtx.fillStyle = '#e11d48';
+        eCtx.beginPath();
+        eCtx.arc(wheelX, wheelY, 6, 0, Math.PI * 2);
+        eCtx.fill();
+
+        // Oscillating Balance Wheel on Right-Center
+        const balX = w * 0.54;
+        const balY = h * 0.52 + (Math.random() - 0.5) * shockJitter;
+        const balR = wheelR * 1.05;
+        const balAngle = Math.sin(escPhase) * ((targetAmplitudeDeg * Math.PI) / 360);
+
+        eCtx.save();
+        eCtx.translate(balX, balY);
+        eCtx.rotate(balAngle);
+        eCtx.strokeStyle = '#d4af37';
+        eCtx.lineWidth = 3.5;
+        eCtx.beginPath();
+        eCtx.arc(0, 0, balR, 0, Math.PI * 2);
+        eCtx.stroke();
+
+        // Balance Spokes
+        for (let s = 0; s < 3; s++) {
+          const sa = (s / 3) * Math.PI * 2;
+          eCtx.beginPath();
+          eCtx.moveTo(0, 0);
+          eCtx.lineTo(Math.cos(sa) * balR, Math.sin(sa) * balR);
+          eCtx.stroke();
+        }
+        eCtx.restore();
+
+        // Acoustic Vibrograph Trace Strip on Far Right
+        const stripX = w * 0.74;
+        const stripW = w * 0.22;
+        eCtx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
+        eCtx.strokeRect(stripX, 28, stripW, h - 56);
+
+        eCtx.fillStyle = '#10b981';
+        for (let i = 0; i < vibroPoints.length; i++) {
+          const vp = vibroPoints[i];
+          const py = 36 + vp.xRatio * (h - 72);
+          const drift = swanNeckTrim * 8 * (vp.xRatio - 0.5);
+          const px = stripX + stripW / 2 + drift + Math.sin(escPhase + i * 0.3) * (1.5 + shockJitter * 0.3);
+          eCtx.fillRect(px, py, 2.5, 2.5);
+        }
+      }
+      renderEscapementLab();
+
+      // =====================================================================
+      // 6. SECTION III: MINUTE REPEATER GONG SYNTHESIZER & MOONPHASE DISC
+      // =====================================================================
+      const repeaterSelect = document.getElementById('repeaterPresetSelect');
+      const chimePillsContainer = document.getElementById('chimePillsContainer');
+      const chimeSeqReadout = document.getElementById('chimeSequenceReadout');
+      let chimeTimers = [];
+
+      function triggerMinuteRepeater() {
+        chimeTimers.forEach((t) => clearTimeout(t));
+        chimeTimers = [];
+
+        let val = repeaterSelect.value;
+        let hours = 10;
+        let mins = 18;
+        if (val === 'now') {
+          const d = new Date();
+          hours = d.getHours() % 12 || 12;
+          mins = d.getMinutes();
+        } else {
+          const parts = val.split(':');
+          hours = parseInt(parts[0], 10);
+          mins = parseInt(parts[1], 10);
+        }
+
+        const quarters = Math.floor(mins / 15);
+        const remMins = mins % 15;
+        document.getElementById('repeaterTimeDisplay').textContent =
+          `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+
+        // Build strike queue
+        const strikes = [];
+        for (let h = 0; h < hours; h++) strikes.push({ type: 'HOUR', label: `H${h + 1}`, freqA: 554.37 });
+        for (let q = 0; q < quarters; q++) strikes.push({ type: 'QUARTER', label: `Q${q + 1}`, freqA: 554.37, freqB: 830.61 });
+        for (let m = 0; m < remMins; m++) strikes.push({ type: 'MIN', label: `M${m + 1}`, freqA: 830.61 });
+
+        chimePillsContainer.innerHTML = '';
+        const pillEls = strikes.map((st) => {
+          const span = document.createElement('span');
+          span.className = 'px-2 py-1 rounded-lg bg-white/5 border border-white/10 font-mono-swiss text-[10px] text-stone-400 transition-all';
+          span.textContent = st.label;
+          chimePillsContainer.appendChild(span);
+          return span;
+        });
+
+        chimeSeqReadout.textContent = `CHIMING ${hours}H · ${quarters}Q · ${remMins}M`;
+        let delay = 80;
+        strikes.forEach((st, idx) => {
+          const t = setTimeout(() => {
+            pillEls[idx].className = 'px-2 py-1 rounded-lg bg-[#d4af37] text-stone-950 font-mono-swiss text-[10px] font-bold scale-110 transition-all';
+            playCathedralGong(st.freqA, 0.7);
+            if (st.freqB) {
+              setTimeout(() => playCathedralGong(st.freqB, 0.7), 160);
+            }
+            if (idx === strikes.length - 1) {
+              setTimeout(() => {
+                chimeSeqReadout.textContent = 'SEQUENCE COMPLETE';
+              }, 600);
+            }
+          }, delay);
+          chimeTimers.push(t);
+          delay += st.type === 'QUARTER' ? 480 : 320;
+        });
+      }
+
+      document.getElementById('triggerRepeaterBtn').addEventListener('click', triggerMinuteRepeater);
+      document.getElementById('chimeStrikeTopBtn').addEventListener('click', () => {
+        triggerMinuteRepeater();
+        showToast('🔔 Striking Cathedral Gong Minute Repeater');
+      });
+
+      // Perpetual Moonphase Canvas
+      const moonCanvas = document.getElementById('moonphaseCanvas');
+      const mCtx = moonCanvas.getContext('2d');
+      const lunarSlider = document.getElementById('lunarSlider');
+
+      function drawMoonphase(day) {
+        const w = moonCanvas.width;
+        const h = moonCanvas.height;
+        mCtx.clearRect(0, 0, w, h);
+
+        // Starry Lapis Sky Background
+        mCtx.fillStyle = '#070b19';
+        mCtx.fillRect(0, 0, w, h);
+        mCtx.fillStyle = '#d4af37';
+        for (let i = 0; i < 24; i++) {
+          const sx = (i * 53) % w;
+          const sy = (i * 37) % h;
+          mCtx.fillRect(sx, sy, 1.8, 1.8);
+        }
+
+        // Golden Moon Disc
+        const cx = w / 2;
+        const cy = h / 2;
+        const r = 56;
+        mCtx.fillStyle = '#f3d478';
+        mCtx.beginPath();
+        mCtx.arc(cx, cy, r, 0, Math.PI * 2);
+        mCtx.fill();
+
+        // Earth Shadow Overlay based on synodic day (0..29.5)
+        const phase = day / 29.5; // 0.5 = Full Moon
+        const shadowOffset = (phase - 0.5) * r * 4.0;
+        mCtx.fillStyle = '#070b19';
+        mCtx.beginPath();
+        mCtx.arc(cx + shadowOffset, cy, r * 1.02, 0, Math.PI * 2);
+        mCtx.fill();
+
+        let phaseName = 'Waxing Gibbous';
+        if (day < 2 || day > 27.5) phaseName = 'New Moon';
+        else if (Math.abs(day - 7.4) < 2) phaseName = 'First Quarter';
+        else if (Math.abs(day - 14.8) < 2) phaseName = 'Full Moon';
+        else if (Math.abs(day - 22.1) < 2) phaseName = 'Last Quarter';
+
+        document.getElementById('lunarDayLabel').textContent = `Day ${day.toFixed(1)} · ${phaseName}`;
+      }
+
+      lunarSlider.addEventListener('input', (e) => {
+        drawMoonphase(parseFloat(e.target.value));
+      });
+      drawMoonphase(14.8);
+
+      // =====================================================================
+      // 7. SECTION IV: BESPOKE ATELIER CONFIGURATOR
+      // =====================================================================
+      let baseMetalPrice = 285000;
+      let finishAddonPrice = 0;
+
+      function updateAtelierValuation() {
+        const total = baseMetalPrice + finishAddonPrice;
+        document.getElementById('atelierPriceOut').textContent = `CHF ${total.toLocaleString()}`;
+      }
+
+      document.querySelectorAll('.config-metal-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.config-metal-btn').forEach((b) => b.classList.remove('crown-btn-active'));
+          btn.classList.add('crown-btn-active');
+          baseMetalPrice = parseInt(btn.getAttribute('data-metal-price'), 10);
+          applyCaseAlloy(btn.getAttribute('data-config-metal'));
+          updateAtelierValuation();
+        });
+      });
+
+      document.querySelectorAll('.config-finish-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.config-finish-btn').forEach((b) => b.classList.remove('crown-btn-active'));
+          btn.classList.add('crown-btn-active');
+          finishAddonPrice = parseInt(btn.getAttribute('data-finish-price'), 10);
+          updateAtelierValuation();
+          playEscapementTick(2600, 0.05);
+        });
+      });
+
+      document.getElementById('reserveAllocationBtn').addEventListener('click', () => {
+        playCathedralGong(659.25, 0.75);
+        showToast('✓ Private Collector Dossier reserved — Geneva Atelier concierge notified');
+      });
+    };
+  </script>
+</body>
+</html>
