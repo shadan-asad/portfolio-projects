@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LE SILENCE — Extrait de Parfum</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&family=Space+Mono:wght@400&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #080706;
+      color: #f4efe6;
+      font-family: 'Inter', -apple-system, sans-serif;
+      cursor: none;
+    }
+
+    .font-editorial {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+
+    .font-index {
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* Full-Screen WebGL Canvas */
+    #webglViewport {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    /* Subtle Film Grain Texture */
+    .film-grain {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.045;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.7) 1px, transparent 0);
+      background-size: 3px 3px;
+    }
+
+    /* Custom Magnetic Ring Cursor */
+    #customCursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 54px;
+      height: 54px;
+      border: 1px solid rgba(244, 239, 230, 0.38);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 100;
+      transform: translate(-50%, -50%);
+      transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.25s ease,
+                  background-color 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      mix-blend-mode: difference;
+    }
+
+    #customCursor.cursor-pressing {
+      width: 82px;
+      height: 82px;
+      border-color: rgba(244, 239, 230, 0.95);
+      background-color: rgba(244, 239, 230, 0.12);
+    }
+
+    #customCursor.cursor-hover {
+      width: 68px;
+      height: 68px;
+      border-color: #ffffff;
+    }
+
+    /* Editorial Giant Title Transition */
+    #chapterTitle {
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                  letter-spacing 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .title-transition-out {
+      opacity: 0 !important;
+      transform: translateY(18px) scale(0.97) !important;
+      letter-spacing: 0.18em !important;
+    }
+
+    /* Minimal Corner Links */
+    .corner-ui {
+      pointer-events: auto;
+      cursor: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .corner-ui:hover {
+      opacity: 1 !important;
+    }
+
+    .scent-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(244, 239, 230, 0.25);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scent-dot.active {
+      width: 28px;
+      border-radius: 999px;
+      background: #f4efe6;
+    }
+
+    /* Minimal Slide-Up Reserve Drawer */
+    #reserveSheet {
+      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+    }
+
+    body.zen-mode .hud-layer {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Magnetic Ring Cursor -->
+  <div id="customCursor">
+    <span id="cursorLabel" class="font-index text-[8px] uppercase tracking-widest text-white/90">HOLD</span>
+  </div>
+
+  <!-- Full-Viewport Custom GLSL + Three.js Canvas -->
+  <div id="webglViewport"></div>
+  <div class="film-grain"></div>
+
+  <!-- =================================================================== -->
+  <!-- ULTRA-MINIMAL 4-CORNER SPATIAL FRAME (ZERO CARDS, ZERO WALLS OF TEXT)-->
+  <!-- =================================================================== -->
+
+  <!-- TOP-LEFT: Maison Wordmark -->
+  <div class="hud-layer fixed top-7 left-8 z-20 flex items-center gap-4 transition-opacity duration-500">
+    <button id="brandResetBtn" class="corner-ui text-left group">
+      <span class="font-editorial text-xl sm:text-2xl tracking-[0.26em] uppercase block font-light">MAISON SILENCE</span>
+      <span class="font-index text-[9px] tracking-[0.22em] uppercase text-white/45 block mt-0.5">PARIS &middot; GRASSE</span>
+    </button>
+  </div>
+
+  <!-- TOP-RIGHT: Sound + Clean Recording Toggle -->
+  <div class="hud-layer fixed top-7 right-8 z-20 flex items-center gap-6 font-index text-[10px] tracking-[0.2em] uppercase transition-opacity duration-500">
+    <button id="zenToggleBtn" class="corner-ui text-white/55 hover:text-white transition-colors" title="Hide all typography for pure visual capture (Press Z)">
+      [ VIEW: <span id="zenStateText">EDITORIAL</span> ]
+    </button>
+    <button id="audioToggleBtn" class="corner-ui text-white/55 hover:text-white transition-colors flex items-center gap-2">
+      <span id="audioPulseDot" class="w-1.5 h-1.5 rounded-full bg-amber-300 animate-ping"></span>
+      <span>SOUND <span id="audioStateText">ON</span></span>
+    </button>
+  </div>
+
+  <!-- CENTER: Whisper-Quiet Giant Editorial Title (Mix-Blend-Difference) -->
+  <div class="hud-layer fixed inset-0 z-10 pointer-events-none flex flex-col items-center justify-center px-4 mix-blend-difference">
+    <div id="chapterIndex" class="font-index text-[10px] tracking-[0.35em] uppercase text-white/60 mb-3">
+      N° 01 &mdash; EXTRAIT DE PARFUM
+    </div>
+    <h1 id="chapterTitle" class="font-editorial italic font-light text-[13vw] sm:text-[10.5vw] leading-[0.86] tracking-[-0.02em] text-center text-[#f4efe6]">
+      Ambre Brut
+    </h1>
+    <div id="chapterNotes" class="font-index text-[10px] sm:text-[11px] tracking-[0.28em] uppercase text-white/65 mt-5">
+      SMOKED LABDANUM &middot; BLACK OUD &middot; COLD GLASS
+    </div>
+  </div>
+
+  <!-- BOTTOM-LEFT: Minimal 4-Chapter Scent Scrubber -->
+  <div class="hud-layer fixed bottom-8 left-8 z-20 flex items-center gap-5 transition-opacity duration-500">
+    <div class="flex items-center gap-2.5">
+      <button data-index="0" class="scent-trigger corner-ui py-2 px-1" aria-label="01 Ambre Brut">
+        <div class="scent-dot active"></div>
+      </button>
+      <button data-index="1" class="scent-trigger corner-ui py-2 px-1" aria-label="02 Rose Cendre">
+        <div class="scent-dot"></div>
+      </button>
+      <button data-index="2" class="scent-trigger corner-ui py-2 px-1" aria-label="03 Cyprès Froid">
+        <div class="scent-dot"></div>
+      </button>
+      <button data-index="3" class="scent-trigger corner-ui py-2 px-1" aria-label="04 Iris Noir">
+        <div class="scent-dot"></div>
+      </button>
+    </div>
+    <span class="font-index text-[9px] tracking-[0.22em] uppercase text-white/40 hidden sm:inline">
+      SCROLL OR CLICK &amp; HOLD TO ATOMIZE
+    </span>
+  </div>
+
+  <!-- BOTTOM-RIGHT: Single Minimal Action Trigger -->
+  <div class="hud-layer fixed bottom-7 right-8 z-20 flex items-center gap-5 transition-opacity duration-500">
+    <button id="nextChapterBtn" class="corner-ui font-index text-[10px] tracking-[0.22em] uppercase text-white/60 hover:text-white py-2">
+      NEXT SCENT &rarr;
+    </button>
+    <button id="openReserveBtn" class="corner-ui px-5 py-2.5 rounded-full border border-white/25 hover:border-white bg-white/5 backdrop-blur-md font-index text-[10px] tracking-[0.22em] uppercase text-white transition-all">
+      ACQUIRE 50ML &mdash; €240
+    </button>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- ULTRA-MINIMAL SINGLE-LINE ACQUISITION DRAWER (HIDDEN UNTIL CLICKED) -->
+  <!-- =================================================================== -->
+  <div id="reserveSheet" class="fixed inset-x-0 bottom-0 z-40 p-6 sm:p-10 pointer-events-none translate-y-full opacity-0 flex justify-center">
+    <div class="pointer-events-auto w-full max-w-2xl rounded-3xl border border-white/20 bg-black/80 backdrop-blur-2xl px-6 py-6 sm:px-8 sm:py-7 flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="text-center sm:text-left">
+        <span id="sheetCode" class="font-index text-[9px] tracking-[0.25em] uppercase text-white/50 block">FLACON N° 01 / HAND-POURED</span>
+        <h2 id="sheetTitle" class="font-editorial italic text-3xl sm:text-4xl font-light mt-0.5">Ambre Brut — 50ml</h2>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="confirmOrderBtn" class="corner-ui px-6 py-3 rounded-full bg-[#f4efe6] text-stone-950 font-index text-[10px] tracking-[0.22em] uppercase font-bold hover:scale-105 transition-transform">
+          CONFIRM &mdash; <span id="sheetPrice">€240</span>
+        </button>
+        <button id="closeReserveBtn" class="corner-ui w-10 h-10 rounded-full border border-white/20 flex items-center justify-center font-index text-xs text-white/60 hover:text-white">
+          ✕
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function () {
+      // =====================================================================
+      // 1. 4 OLFACTORY SCULPTURAL CHAPTERS (MINIMAL DATA)
+      // =====================================================================
+      const CHAPTERS = [
+        {
+          index: 'N° 01 — EXTRAIT DE PARFUM',
+          title: 'Ambre Brut',
+          notes: 'SMOKED LABDANUM · BLACK OUD · COLD GLASS',
+          price: '€240',
+          bgHex: 0x090605,
+          coreHex: 0xd97706,
+          rimHex: 0xfde68a,
+          mistHex: 0xf59e0b,
+          chordFreq: 196.0, // G3
+          morphFrequency: 1.6
+        },
+        {
+          index: 'N° 02 — EXTRAIT DE PARFUM',
+          title: 'Rose Cendre',
+          notes: 'BURNT DAMASK PETAL · PINK PEPPER · INCENSE ASH',
+          price: '€260',
+          bgHex: 0x0b0507,
+          coreHex: 0xe11d48,
+          rimHex: 0xfda4af,
+          mistHex: 0xf43f5e,
+          chordFreq: 220.0, // A3
+          morphFrequency: 2.3
+        },
+        {
+          index: 'N° 03 — EXTRAIT DE PARFUM',
+          title: 'Cyprès Froid',
+          notes: 'WET HINOKI WOOD · CRUSHED PINE NEEDLE · VETIVER',
+          price: '€245',
+          bgHex: 0x040907,
+          coreHex: 0x10b981,
+          rimHex: 0xa7f3d0,
+          mistHex: 0x34d399,
+          chordFreq: 174.61, // F3
+          morphFrequency: 1.2
+        },
+        {
+          index: 'N° 04 — EXTRAIT DE PARFUM',
+          title: 'Iris Noir',
+          notes: 'FLORENTINE ORRIS BUTTER · VIOLET LEAF · SUEDE',
+          price: '€290',
+          bgHex: 0x06050b,
+          coreHex: 0x6366f1,
+          rimHex: 0xc4b5fd,
+          mistHex: 0x818cf8,
+          chordFreq: 246.94, // B3
+          morphFrequency: 2.8
+        }
+      ];
+
+      let activeChapterIdx = 0;
+
+      // =====================================================================
+      // 2. PROCEDURAL AMBIENT GLASS & ATOMIZER MIST AUDIO
+      // =====================================================================
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      function ensureAudio() {
+        if (!soundEnabled) return null;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+
+      function playCrystalHarmonic(freq = 220, dur = 1.6) {
+        const ctx = ensureAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        [1, 1.5, 2.0].forEach((mult, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq * mult, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.032 / (i + 1), now + 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + dur + 0.05);
+        });
+      }
+
+      // Custom Magnetic Cursor Tracking
+      const cursorEl = document.getElementById('customCursor');
+      const cursorLabel = document.getElementById('cursorLabel');
+      let mouseScreen = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+      let smoothCursor = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+      window.addEventListener('pointermove', (e) => {
+        mouseScreen.x = e.clientX;
+        mouseScreen.y = e.clientY;
+      });
+
+      document.querySelectorAll('.corner-ui').forEach((el) => {
+        el.addEventListener('pointerenter', () => {
+          cursorEl.classList.add('cursor-hover');
+          cursorLabel.textContent = 'SELECT';
+        });
+        el.addEventListener('pointerleave', () => {
+          cursorEl.classList.remove('cursor-hover');
+          cursorLabel.textContent = 'HOLD';
+        });
+      });
+
+      // =====================================================================
+      // 3. THREE.JS FULL-VIEWPORT REFRACTIVE LIQUID MONOLITH & MIST
+      // =====================================================================
+      const viewport = document.getElementById('webglViewport');
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
+      camera.position.set(0, 0, 17.5);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.25;
+      viewport.appendChild(renderer.domElement);
+
+      // Dramatic Chiaroscuro Gallery Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
+      scene.add(ambientLight);
+
+      const keyLight = new THREE.PointLight(0xfff7ed, 4.2, 45);
+      keyLight.position.set(8, 9, 10);
+      scene.add(keyLight);
+
+      const coreLight = new THREE.PointLight(0xd97706, 5.5, 38);
+      coreLight.position.set(-7, -5, 7);
+      scene.add(coreLight);
+
+      const rimLight = new THREE.PointLight(0xfde68a, 3.8, 40);
+      rimLight.position.set(0, 8, -9);
+      scene.add(rimLight);
+
+      // --- 3A. SCULPTED ORGANIC LIQUID GLASS MONOLITH ---
+      const sculptureGroup = new THREE.Group();
+      scene.add(sculptureGroup);
+
+      const vesselGeo = new THREE.IcosahedronGeometry(3.45, 6);
+      const basePositions = Float32Array.from(vesselGeo.attributes.position.array);
+
+      const vesselMat = new THREE.MeshPhysicalMaterial({
+        color: 0x1a1412,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.35,
+        metalness: 0.18,
+        roughness: 0.08,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.06,
+        wireframe: false
+      });
+
+      const vesselMesh = new THREE.Mesh(vesselGeo, vesselMat);
+      sculptureGroup.add(vesselMesh);
+
+      // Inner Suspended Golden Parfum Drop Core
+      const innerCoreGeo = new THREE.IcosahedronGeometry(1.75, 4);
+      const innerCoreMat = new THREE.MeshBasicMaterial({
+        color: 0xfde68a,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.28
+      });
+      const innerCoreMesh = new THREE.Mesh(innerCoreGeo, innerCoreMat);
+      sculptureGroup.add(innerCoreMesh);
+
+      // --- 3B. 3,600 OLFACTORY ATOMIZER MIST PARTICLES ---
+      const MIST_COUNT = 3600;
+      const mistGeo = new THREE.BufferGeometry();
+      const mistPositions = new Float32Array(MIST_COUNT * 3);
+      const mistHome = new Float32Array(MIST_COUNT * 3);
+
+      function makeSoftParticleTex() {
+        const c = document.createElement('canvas');
+        c.width = 64;
+        c.height = 64;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
+        g.addColorStop(0, 'rgba(255,255,255,1)');
+        g.addColorStop(0.45, 'rgba(255,255,255,0.45)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 64, 64);
+        return new THREE.CanvasTexture(c);
+      }
+
+      for (let i = 0; i < MIST_COUNT; i++) {
+        const u = i / MIST_COUNT;
+        const theta = i * 2.3999632;
+        const phi = Math.acos(1 - 2 * u);
+        const r = 4.2 + (i % 9) * 0.72;
+
+        const x = r * Math.sin(phi) * Math.cos(theta) * 1.35;
+        const y = r * Math.cos(phi);
+        const z = r * Math.sin(phi) * Math.sin(theta);
+
+        mistPositions[i * 3] = x;
+        mistPositions[i * 3 + 1] = y;
+        mistPositions[i * 3 + 2] = z;
+
+        mistHome[i * 3] = x;
+        mistHome[i * 3 + 1] = y;
+        mistHome[i * 3 + 2] = z;
+      }
+
+      mistGeo.setAttribute('position', new THREE.BufferAttribute(mistPositions, 3));
+      const mistMat = new THREE.PointsMaterial({
+        size: 0.19,
+        map: makeSoftParticleTex(),
+        color: 0xf59e0b,
+        transparent: true,
+        opacity: 0.65,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      const mistSystem = new THREE.Points(mistGeo, mistMat);
+      sculptureGroup.add(mistSystem);
+
+      // =====================================================================
+      // 4. PRESS-AND-HOLD ATOMIZER & SCROLL CHAPTER TRANSITIONS
+      // =====================================================================
+      let isHoldingAtomize = false;
+      let atomizeStrength = 0; // 0.0 -> 1.0 when holding mouse
+      let targetMorphFreq = CHAPTERS[0].morphFrequency;
+      let currentMorphFreq = CHAPTERS[0].morphFrequency;
+
+      const targetBgColor = new THREE.Color(CHAPTERS[0].bgHex);
+      const currentBgColor = new THREE.Color(CHAPTERS[0].bgHex);
+      const targetCoreColor = new THREE.Color(CHAPTERS[0].coreHex);
+      const targetRimColor = new THREE.Color(CHAPTERS[0].rimHex);
+
+      function goToChapter(index) {
+        const nextIdx = (index + CHAPTERS.length) % CHAPTERS.length;
+        if (nextIdx === activeChapterIdx) return;
+        activeChapterIdx = nextIdx;
+        const ch = CHAPTERS[activeChapterIdx];
+
+        // Smooth Title Transition
+        const titleEl = document.getElementById('chapterTitle');
+        titleEl.classList.add('title-transition-out');
+
+        setTimeout(() => {
+          document.getElementById('chapterIndex').textContent = ch.index;
+          titleEl.textContent = ch.title;
+          document.getElementById('chapterNotes').textContent = ch.notes;
+          document.getElementById('openReserveBtn').textContent = `ACQUIRE 50ML — ${ch.price}`;
+          document.getElementById('sheetCode').textContent = `FLACON N° 0${activeChapterIdx + 1} / HAND-POURED`;
+          document.getElementById('sheetTitle').textContent = `${ch.title} — 50ml`;
+          document.getElementById('sheetPrice').textContent = ch.price;
+          titleEl.classList.remove('title-transition-out');
+        }, 260);
+
+        // Update Dots
+        document.querySelectorAll('.scent-dot').forEach((dot, i) => {
+          dot.classList.toggle('active', i === activeChapterIdx);
+        });
+
+        // Update 3D Target Colors & Harmonics
+        targetBgColor.setHex(ch.bgHex);
+        targetCoreColor.setHex(ch.coreHex);
+        targetRimColor.setHex(ch.rimHex);
+        targetMorphFreq = ch.morphFrequency;
+        atomizeStrength = 0.85; // Brief celebratory mist burst on change
+
+        playCrystalHarmonic(ch.chordFreq, 1.8);
+      }
+
+      document.querySelectorAll('.scent-trigger').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          goToChapter(parseInt(btn.getAttribute('data-index'), 10));
+        });
+      });
+
+      document.getElementById('nextChapterBtn').addEventListener('click', () => {
+        goToChapter(activeChapterIdx + 1);
+      });
+
+      document.getElementById('brandResetBtn').addEventListener('click', () => {
+        goToChapter(0);
+      });
+
+      // Mouse Wheel Chapter Scrubbing (Debounced like an Awwwards Showcase)
+      let wheelCooldown = false;
+      window.addEventListener('wheel', (e) => {
+        if (wheelCooldown) return;
+        if (Math.abs(e.deltaY) > 28) {
+          wheelCooldown = true;
+          goToChapter(e.deltaY > 0 ? activeChapterIdx + 1 : activeChapterIdx - 1);
+          setTimeout(() => { wheelCooldown = false; }, 850);
+        }
+      }, { passive: true });
+
+      // Press and Hold Anywhere on Canvas to Atomize the Sculpture into Mist
+      viewport.addEventListener('pointerdown', () => {
+        isHoldingAtomize = true;
+        cursorEl.classList.add('cursor-pressing');
+        cursorLabel.textContent = 'MIST';
+        playCrystalHarmonic(CHAPTERS[activeChapterIdx].chordFreq * 1.5, 1.4);
+      });
+
+      window.addEventListener('pointerup', () => {
+        if (isHoldingAtomize) {
+          isHoldingAtomize = false;
+          cursorEl.classList.remove('cursor-pressing');
+          cursorLabel.textContent = 'HOLD';
+        }
+      });
+
+      // Top-Right Controls (Sound & Zen View)
+      document.getElementById('audioToggleBtn').addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        document.getElementById('audioStateText').textContent = soundEnabled ? 'ON' : 'OFF';
+        document.getElementById('audioPulseDot').style.opacity = soundEnabled ? '1' : '0.2';
+      });
+
+      let isZen = false;
+      function toggleZenMode() {
+        isZen = !isZen;
+        document.body.classList.toggle('zen-mode', isZen);
+        document.getElementById('zenStateText').textContent = isZen ? 'PURE' : 'EDITORIAL';
+      }
+      document.getElementById('zenToggleBtn').addEventListener('click', toggleZenMode);
+      window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'z') toggleZenMode();
+        if (e.key === 'ArrowRight') goToChapter(activeChapterIdx + 1);
+        if (e.key === 'ArrowLeft') goToChapter(activeChapterIdx - 1);
+      });
+
+      // Minimal Acquisition Drawer
+      const reserveSheet = document.getElementById('reserveSheet');
+      function setSheetOpen(open) {
+        reserveSheet.classList.toggle('translate-y-full', !open);
+        reserveSheet.classList.toggle('opacity-0', !open);
+        playCrystalHarmonic(open ? 329.63 : 220, 0.9);
+      }
+
+      document.getElementById('openReserveBtn').addEventListener('click', () => setSheetOpen(true));
+      document.getElementById('closeReserveBtn').addEventListener('click', () => setSheetOpen(false));
+      document.getElementById('confirmOrderBtn').addEventListener('click', () => {
+        const btn = document.getElementById('confirmOrderBtn');
+        btn.textContent = 'RESERVED · DISPATCHING FROM PARIS';
+        playCrystalHarmonic(440, 1.5);
+        setTimeout(() => {
+          setSheetOpen(false);
+          setTimeout(() => {
+            btn.innerHTML = `CONFIRM &mdash; <span id="sheetPrice">${CHAPTERS[activeChapterIdx].price}</span>`;
+          }, 500);
+        }, 1200);
+      });
+
+      // Resize Handler
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // =====================================================================
+      // 5. MAIN 60FPS ANIMATION & ORGANIC VERTEX DISPLACEMENT LOOP
+      // =====================================================================
+      let clock = 0;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        clock += 0.014;
+
+        // Smooth Magnetic Cursor Follow
+        smoothCursor.x += (mouseScreen.x - smoothCursor.x) * 0.18;
+        smoothCursor.y += (mouseScreen.y - smoothCursor.y) * 0.18;
+        cursorEl.style.left = `${smoothCursor.x}px`;
+        cursorEl.style.top = `${smoothCursor.y}px`;
+
+        const ndcX = (smoothCursor.x / window.innerWidth) * 2 - 1;
+        const ndcY = -(smoothCursor.y / window.innerHeight) * 2 + 1;
+
+        // Interpolate Atomizer Hold State
+        const targetAtomize = isHoldingAtomize ? 1.45 : 0.0;
+        atomizeStrength += (targetAtomize - atomizeStrength) * 0.07;
+        currentMorphFreq += (targetMorphFreq - currentMorphFreq) * 0.05;
+
+        // Interpolate Scene Palette
+        currentBgColor.lerp(targetBgColor, 0.05);
+        renderer.setClearColor(currentBgColor);
+        vesselMat.emissive.lerp(targetCoreColor, 0.06);
+        coreLight.color.lerp(targetCoreColor, 0.06);
+        rimLight.color.lerp(targetRimColor, 0.06);
+        mistMat.color.lerp(targetRimColor, 0.06);
+        innerCoreMat.color.lerp(targetRimColor, 0.06);
+
+        // Displace Liquid Monolith Vertices
+        const posAttr = vesselGeo.attributes.position;
+        const vArr = posAttr.array;
+
+        for (let i = 0; i < vArr.length; i += 3) {
+          const bx = basePositions[i];
+          const by = basePositions[i + 1];
+          const bz = basePositions[i + 2];
+          const len = Math.sqrt(bx * bx + by * by + bz * bz) || 1;
+          const nx = bx / len;
+          const ny = by / len;
+          const nz = bz / len;
+
+          const wave =
+            Math.sin(nx * currentMorphFreq * 2.2 + clock * 1.8 + ndcX * 2.0) *
+            Math.cos(ny * currentMorphFreq * 2.2 - clock * 1.5 + ndcY * 2.0) *
+            Math.sin(nz * currentMorphFreq * 2.0 + clock * 1.2);
+
+          const scale = 1.0 + wave * (0.28 + atomizeStrength * 0.55) - atomizeStrength * 0.18;
+          vArr[i] = bx * scale;
+          vArr[i + 1] = by * scale;
+          vArr[i + 2] = bz * scale;
+        }
+        posAttr.needsUpdate = true;
+        vesselGeo.computeVertexNormals();
+
+        // Displace 3,600 Olfactory Mist Particles
+        const mAttr = mistGeo.attributes.position;
+        const mArr = mAttr.array;
+        const cursor3DX = ndcX * 7.5;
+        const cursor3DY = ndcY * 5.0;
+
+        for (let i = 0; i < MIST_COUNT; i++) {
+          const idx = i * 3;
+          const hx = mistHome[idx];
+          const hy = mistHome[idx + 1];
+          const hz = mistHome[idx + 2];
+
+          const expand = 1.0 + atomizeStrength * 1.15;
+          let tx = hx * expand + Math.sin(clock + i * 0.1) * 0.25;
+          let ty = hy * expand + Math.cos(clock * 0.9 + i * 0.1) * 0.25;
+          let tz = hz * expand;
+
+          // Subtle cursor wake turbulence
+          const dx = mArr[idx] - cursor3DX;
+          const dy = mArr[idx + 1] - cursor3DY;
+          const dSq = dx * dx + dy * dy + 0.2;
+          if (dSq < 18) {
+            const pull = (4.2 - Math.sqrt(dSq)) * 0.35;
+            tx += -dy * pull;
+            ty += dx * pull;
+          }
+
+          mArr[idx] += (tx - mArr[idx]) * 0.08;
+          mArr[idx + 1] += (ty - mArr[idx + 1]) * 0.08;
+          mArr[idx + 2] += (tz - mArr[idx + 2]) * 0.08;
+        }
+        mAttr.needsUpdate = true;
+
+        // Smooth Sculpture Parallax & Rotation
+        sculptureGroup.rotation.y = clock * 0.18 + ndcX * 0.55;
+        sculptureGroup.rotation.x = -ndcY * 0.38 + Math.sin(clock * 0.4) * 0.12;
+        innerCoreMesh.rotation.y = -clock * 0.45;
+        innerCoreMesh.scale.setScalar(1.0 + atomizeStrength * 0.6);
+
+        keyLight.position.x = ndcX * 12;
+        keyLight.position.y = ndcY * 10;
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+    };
+  </script>
+</body>
+</html>

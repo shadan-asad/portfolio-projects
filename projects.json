@@ -64,6 +64,17 @@
     "tags": ["Ferrofluid WebGL", "Interactive Canvas", "Morphogenetic", "Cyberpunk"],
     "accentColor": "#c084fc",
     "featured": true
+  },
+  {
+    "file": "le_silence_extrait_de_parfum.html",
+    "slug": "le-silence",
+    "title": "LE SILENCE",
+    "tagline": "Extrait de Parfum & Spatial Olfactory Canvas",
+    "description": "Monolithic 3D glass flacon simulation with interactive fluid atomization particles and multi-chapter scent profiles.",
+    "category": "3D & WebGL",
+    "tags": ["Three.js", "WebGL", "Luxury Fragrance", "Spatial Audio"],
+    "accentColor": "#eab308",
+    "featured": true
   }
 ]
 
