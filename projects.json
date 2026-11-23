@@ -75,6 +75,17 @@
     "tags": ["Three.js", "WebGL", "Luxury Fragrance", "Spatial Audio"],
     "accentColor": "#eab308",
     "featured": true
+  },
+  {
+    "file": "k_ro_architectural_incense_atelier.html",
+    "slug": "koro",
+    "title": "KŌRO",
+    "tagline": "Architectural Incense Atelier & Fluid Smoke Simulation",
+    "description": "Interactive real-time fluid dynamic smoke simulation and architectural incense atelier with bespoke Japanese ceramics and scent profiling.",
+    "category": "Interactive UI",
+    "tags": ["Fluid Simulation", "Canvas 2D", "Architectural", "Editorial Design"],
+    "accentColor": "#ff6b2b",
+    "featured": true
   }
 ]
 
